@@ -1,0 +1,146 @@
+{
+  "name": "PrincetonAI-Medical-PhoneAgent",
+  "conversation_config": {
+    "agent": {
+      "prompt": {
+        "prompt": "See system-prompt.md for full prompt content",
+        "llm": "claude-sonnet-4",
+        "temperature": 0.7,
+        "max_tokens": 300
+      },
+      "first_message": "Hello, you've reached the automated patient request line. I'll help you submit a request to the practice team. Could I start with your first name?",
+      "language": "en"
+    },
+    "asr": {
+      "quality": "high",
+      "provider": "elevenlabs"
+    },
+    "tts": {
+      "model_id": "eleven_turbo_v2_5",
+      "voice_id": "TO_BE_SELECTED",
+      "stability": 0.5,
+      "similarity_boost": 0.8,
+      "speed": 1.0
+    },
+    "turn": {
+      "mode": "turn_based",
+      "turn_timeout_secs": 10,
+      "silence_end_call_timeout_secs": 30
+    },
+    "conversation": {
+      "max_duration_secs": 900
+    }
+  },
+  "platform_settings": {
+    "evaluation": {
+      "criteria": [
+        {
+          "name": "patient_identification",
+          "description": "Successfully collected patient name, postcode, and phone number"
+        },
+        {
+          "name": "emergency_screening",
+          "description": "Confirmed the call is not an emergency"
+        },
+        {
+          "name": "request_captured",
+          "description": "Captured the request type and relevant details"
+        },
+        {
+          "name": "confirmation_given",
+          "description": "Read back and confirmed information with patient"
+        }
+      ]
+    },
+    "data_collection": {
+      "patient_first_name": {
+        "type": "string",
+        "description": "Patient's first name"
+      },
+      "patient_last_name": {
+        "type": "string",
+        "description": "Patient's last name"
+      },
+      "patient_postcode": {
+        "type": "string",
+        "description": "UK postcode, uppercase with space"
+      },
+      "patient_phone": {
+        "type": "string",
+        "description": "UK phone number"
+      },
+      "preferred_contact": {
+        "type": "string",
+        "enum": ["text", "phone", "both"],
+        "description": "How patient prefers to be contacted"
+      },
+      "emergency_confirmed": {
+        "type": "boolean",
+        "description": "Patient confirmed not an emergency"
+      },
+      "request_type": {
+        "type": "string",
+        "enum": ["health_problem", "repeat_prescription"],
+        "description": "Type of request"
+      },
+      "health_problem_description": {
+        "type": "string",
+        "description": "Description of health problem if applicable"
+      },
+      "health_problem_duration": {
+        "type": "string",
+        "description": "How long problem has been occurring"
+      },
+      "health_problem_progression": {
+        "type": "string",
+        "description": "Getting better, worse, or same"
+      },
+      "health_problem_tried": {
+        "type": "string",
+        "description": "Treatments patient has tried"
+      },
+      "health_problem_concerns": {
+        "type": "string",
+        "description": "Patient's specific concerns"
+      },
+      "health_problem_help_wanted": {
+        "type": "string",
+        "description": "How patient wants to be helped"
+      },
+      "best_contact_times": {
+        "type": "string",
+        "description": "When patient is available"
+      },
+      "medications_requested": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "strength": { "type": "string" }
+          }
+        },
+        "description": "List of medications for repeat prescription"
+      },
+      "prescription_notes": {
+        "type": "string",
+        "description": "Additional notes about prescription"
+      },
+      "call_successful": {
+        "type": "boolean",
+        "description": "Whether intake was completed successfully"
+      }
+    },
+    "privacy": {
+      "record_conversation": true,
+      "retention_days": 30
+    }
+  },
+  "workflow": {
+    "post_call_webhook": {
+      "url": "TO_BE_CONFIGURED",
+      "type": "post_call_transcription"
+    }
+  },
+  "tags": ["medical", "intake", "uk", "mvp"]
+}
