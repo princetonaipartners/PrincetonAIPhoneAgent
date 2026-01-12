@@ -108,9 +108,10 @@ export interface ElevenLabsDataCollected {
 }
 
 export interface ElevenLabsAnalysis {
-  call_successful: boolean;
-  data_collected: ElevenLabsDataCollected;
-  summary?: string;
+  call_successful: string; // "success", "failure", etc.
+  data_collection_results: ElevenLabsDataCollected;
+  evaluation_criteria_results?: Record<string, unknown>;
+  transcript_summary?: string;
 }
 
 export interface ElevenLabsWebhookData {

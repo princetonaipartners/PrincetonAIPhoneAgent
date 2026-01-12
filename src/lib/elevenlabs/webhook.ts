@@ -116,7 +116,7 @@ export function parseWebhookPayload(body: string): {
 export function extractPatientData(
   analysis: ElevenLabsWebhookPayload['data']['analysis']
 ): PatientData {
-  const data = analysis?.data_collected || {};
+  const data = analysis?.data_collection_results || {};
 
   return {
     first_name: data.patient_first_name || '',
@@ -134,7 +134,7 @@ export function extractPatientData(
 export function extractRequestData(
   analysis: ElevenLabsWebhookPayload['data']['analysis']
 ): { type: RequestType | null; data: RequestData | null } {
-  const collected = analysis?.data_collected;
+  const collected = analysis?.data_collection_results;
 
   if (!collected?.request_type) {
     return { type: null, data: null };
@@ -198,18 +198,19 @@ export function determineStatus(
     return 'failed';
   }
 
-  if (!analysis?.call_successful) {
+  // call_successful is a string like "success" or "failure"
+  if (analysis?.call_successful !== 'success') {
     return 'requires_review';
   }
 
-  const data = analysis.data_collected;
+  const data = analysis.data_collection_results;
 
   // Check if essential fields are present
-  if (!data.patient_first_name || !data.patient_last_name) {
+  if (!data?.patient_first_name || !data?.patient_last_name) {
     return 'requires_review';
   }
 
-  if (!data.emergency_confirmed) {
+  if (!data?.emergency_confirmed) {
     return 'requires_review';
   }
 
