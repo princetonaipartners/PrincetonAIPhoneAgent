@@ -135,15 +135,20 @@ export default async function AdminPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {submissions.map((submission) => (
+                {submissions.map((submission) => {
+                  const hasName = submission.patient_data.first_name || submission.patient_data.last_name;
+                  const patientName = hasName
+                    ? `${submission.patient_data.first_name} ${submission.patient_data.last_name}`.trim()
+                    : null;
+
+                  return (
                   <tr key={submission.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {submission.patient_data.first_name}{' '}
-                        {submission.patient_data.last_name}
+                        {patientName || <span className="text-gray-400 italic">Name not provided</span>}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {submission.patient_data.postcode}
+                        {submission.patient_data.postcode || <span className="text-gray-400">No postcode</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -167,7 +172,8 @@ export default async function AdminPage() {
                       </Link>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

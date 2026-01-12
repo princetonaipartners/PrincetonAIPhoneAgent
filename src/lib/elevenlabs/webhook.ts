@@ -119,12 +119,12 @@ export function extractPatientData(
   const data = analysis?.data_collection_results || {};
 
   return {
-    first_name: data.patient_first_name || '',
-    last_name: data.patient_last_name || '',
-    postcode: formatPostcode(data.patient_postcode || ''),
-    phone_number: data.patient_phone || '',
+    first_name: parseStringValue(data.patient_first_name) || '',
+    last_name: parseStringValue(data.patient_last_name) || '',
+    postcode: formatPostcode(parseStringValue(data.patient_postcode) || ''),
+    phone_number: parseStringValue(data.patient_phone) || '',
     preferred_contact: parsePreferredContact(data.preferred_contact),
-    emergency_confirmed: data.emergency_confirmed ?? false,
+    emergency_confirmed: parseBooleanValue(data.emergency_confirmed),
   };
 }
 
@@ -136,22 +136,23 @@ export function extractRequestData(
 ): { type: RequestType | null; data: RequestData | null } {
   const collected = analysis?.data_collection_results;
 
-  if (!collected?.request_type) {
+  const requestTypeValue = parseStringValue(collected?.request_type);
+  if (!requestTypeValue) {
     return { type: null, data: null };
   }
 
-  const requestType = collected.request_type as RequestType;
+  const requestType = requestTypeValue as RequestType;
 
   if (requestType === 'health_problem') {
     const healthData: HealthProblemRequest = {
       type: 'health_problem',
-      description: collected.health_problem_description || '',
-      duration: collected.health_problem_duration || '',
-      progression: collected.health_problem_progression || '',
-      treatments_tried: collected.health_problem_tried || '',
-      concerns: collected.health_problem_concerns || '',
-      help_requested: collected.health_problem_help_wanted || '',
-      best_contact_times: collected.best_contact_times || '',
+      description: parseStringValue(collected?.health_problem_description) || '',
+      duration: parseStringValue(collected?.health_problem_duration) || '',
+      progression: parseStringValue(collected?.health_problem_progression) || '',
+      treatments_tried: parseStringValue(collected?.health_problem_tried) || '',
+      concerns: parseStringValue(collected?.health_problem_concerns) || '',
+      help_requested: parseStringValue(collected?.health_problem_help_wanted) || '',
+      best_contact_times: parseStringValue(collected?.best_contact_times) || '',
     };
     return { type: requestType, data: healthData };
   }
@@ -159,8 +160,8 @@ export function extractRequestData(
   if (requestType === 'repeat_prescription') {
     const prescriptionData: RepeatPrescriptionRequest = {
       type: 'repeat_prescription',
-      medications: collected.medications_requested || [],
-      additional_notes: collected.prescription_notes || '',
+      medications: parseArrayValue(collected?.medications_requested) || [],
+      additional_notes: parseStringValue(collected?.prescription_notes) || '',
     };
     return { type: requestType, data: prescriptionData };
   }
@@ -206,11 +207,15 @@ export function determineStatus(
   const data = analysis.data_collection_results;
 
   // Check if essential fields are present
-  if (!data?.patient_first_name || !data?.patient_last_name) {
+  const firstName = parseStringValue(data?.patient_first_name);
+  const lastName = parseStringValue(data?.patient_last_name);
+  if (!firstName || !lastName) {
     return 'requires_review';
   }
 
-  if (!data?.emergency_confirmed) {
+  // Emergency must be confirmed (i.e., they confirmed it's NOT an emergency)
+  const emergencyConfirmed = parseBooleanValue(data?.emergency_confirmed);
+  if (!emergencyConfirmed) {
     return 'requires_review';
   }
 
@@ -247,4 +252,44 @@ function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Parses a string value, handling "null" strings from ElevenLabs
+ */
+function parseStringValue(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    // ElevenLabs sometimes returns "null" as a string
+    if (trimmed.toLowerCase() === 'null' || trimmed === '') return null;
+    return trimmed;
+  }
+  return String(value);
+}
+
+/**
+ * Parses a boolean value, handling string "True"/"False" from ElevenLabs
+ */
+function parseBooleanValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase().trim();
+    return lower === 'true' || lower === 'yes' || lower === '1';
+  }
+  return Boolean(value);
+}
+
+/**
+ * Parses an array value, handling "null" strings from ElevenLabs
+ */
+function parseArrayValue<T>(value: unknown): T[] | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim().toLowerCase();
+    if (trimmed === 'null' || trimmed === '') return null;
+  }
+  if (Array.isArray(value)) return value as T[];
+  return null;
 }

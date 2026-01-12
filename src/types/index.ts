@@ -158,3 +158,62 @@ export interface PostcodeValidationResult {
   formatted: string;
   error?: string;
 }
+
+// ============================================
+// Submission Notes Types
+// ============================================
+
+export type NoteType = 'general' | 'follow_up' | 'clinical' | 'correction';
+
+export interface SubmissionNote {
+  id: string;
+  submission_id: string;
+  note_type: NoteType;
+  content: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// Edit History Types
+// ============================================
+
+export interface SubmissionEdit {
+  id: string;
+  submission_id: string;
+  field_path: string;
+  old_value: unknown;
+  new_value: unknown;
+  edit_reason: string | null;
+  edited_by: string | null;
+  created_at: string;
+}
+
+// ============================================
+// Extended Submission Type
+// ============================================
+
+export interface SubmissionWithDetails extends Submission {
+  notes?: SubmissionNote[];
+  edit_history?: SubmissionEdit[];
+  last_edited_at?: string | null;
+  edit_count?: number;
+}
+
+// ============================================
+// Update Request Types
+// ============================================
+
+export interface UpdateSubmissionRequest {
+  status?: SubmissionStatus;
+  patient_data?: Partial<PatientData>;
+  request_type?: RequestType;
+  request_data?: Partial<RequestData>;
+  edit_reason?: string;
+}
+
+export interface AddNoteRequest {
+  note_type: NoteType;
+  content: string;
+}

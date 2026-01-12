@@ -17,7 +17,18 @@
       "Bash(git push:*)",
       "Bash(claude mcp add:*)",
       "Bash(claude mcp list:*)",
-      "WebFetch(domain:princeton-ai-phone-agent.vercel.app)"
+      "WebFetch(domain:princeton-ai-phone-agent.vercel.app)",
+      "Bash(npx -y @supabase/mcp-server-supabase@latest --help)",
+      "Bash(echo:*)",
+      "Bash(npx:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(cat:*)",
+      "Bash(findstr:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase",
+    "github",
+    "vercel"
+  ]
 }
