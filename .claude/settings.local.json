@@ -24,7 +24,10 @@
       "WebFetch(domain:github.com)",
       "Bash(cat:*)",
       "Bash(findstr:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "mcp__github__list_commits",
+      "WebFetch(domain:community.n8n.io)",
+      "WebFetch(domain:drdroid.io)"
     ]
   },
   "enabledMcpjsonServers": [
