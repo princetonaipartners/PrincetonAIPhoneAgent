@@ -226,7 +226,12 @@ export function determineStatus(
 // Helper Functions
 // ============================================
 
-function formatPostcode(postcode: string): string {
+function formatPostcode(postcode: unknown): string {
+  // Handle non-string inputs
+  if (!postcode || typeof postcode !== 'string') {
+    return '';
+  }
+
   // Remove all spaces and convert to uppercase
   const cleaned = postcode.replace(/\s/g, '').toUpperCase();
 
@@ -255,16 +260,29 @@ function formatTime(seconds: number): string {
 }
 
 /**
- * Parses a string value, handling "null" strings from ElevenLabs
+ * Parses a string value, handling "null" strings and objects from ElevenLabs
  */
 function parseStringValue(value: unknown): string | null {
   if (value === null || value === undefined) return null;
+
+  // Handle objects - ElevenLabs sometimes sends { value: "...", description: "..." }
+  if (typeof value === 'object' && value !== null) {
+    const obj = value as Record<string, unknown>;
+    // Try common property names for the actual value
+    const actualValue = obj.value ?? obj.result ?? obj.data;
+    if (actualValue !== undefined) {
+      return parseStringValue(actualValue);
+    }
+    return null;
+  }
+
   if (typeof value === 'string') {
     const trimmed = value.trim();
     // ElevenLabs sometimes returns "null" as a string
     if (trimmed.toLowerCase() === 'null' || trimmed === '') return null;
     return trimmed;
   }
+
   return String(value);
 }
 

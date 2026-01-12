@@ -23,7 +23,8 @@
       "Bash(npx:*)",
       "WebFetch(domain:github.com)",
       "Bash(cat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git fetch:*)"
     ]
   },
   "enabledMcpjsonServers": [
