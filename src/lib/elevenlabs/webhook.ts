@@ -1,8 +1,10 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import type {
   ElevenLabsWebhookPayload,
+  ElevenLabsDataCollected,
   PatientData,
   RequestData,
+  MultiRequestData,
   HealthProblemRequest,
   RepeatPrescriptionRequest,
   RequestType,
@@ -121,59 +123,36 @@ export function detectEmergencyFromTranscript(
     return false;
   }
 
+  // IMPORTANT: Only include phrases where the patient is ASSERTING an emergency.
+  // DO NOT include symptom phrases (chest pain, difficulty breathing, etc.) because
+  // patients often DENY these during emergency screening:
+  //   Agent: "If you have chest pain, difficulty breathing..."
+  //   Patient: "No, no chest pain, I'm fine"
+  // The word "chest pain" appears but the patient is NEGATING it.
   const emergencyPhrases = [
-    // Direct emergency statements
+    // Direct emergency statements (patient asserting emergency)
     'this is an emergency',
-    'this is emergency',
-    'i have an emergency',
-    'i have emergency',
     'it is an emergency',
-    'it is emergency',
     'is an emergency',
-    'is emergency',
+    'i have an emergency',
     'having an emergency',
-    'having emergency',
     'yes emergency',
-    'an emergency',
-    'emergency i need',
     'emergency help',
-    // Ambulance/999 related
+
+    // Requesting immediate help
     'need ambulance',
     'call 999',
     'call an ambulance',
     'need an ambulance',
-    // Symptoms that indicate emergency
-    'chest pain',
-    'can\'t breathe',
-    'cannot breathe',
-    'cant breathe',
-    'difficulty breathing',
-    'hard to breathe',
-    'severe bleeding',
-    'heavy bleeding',
-    'having a stroke',
-    'signs of stroke',
-    'heart attack',
-    'unconscious',
-    'passed out',
-    'seizure',
-    'choking',
-    // Life-threatening statements
+
+    // Life-threatening statements (patient asserting)
     'i am dying',
     'i\'m dying',
     'im dying',
     'going to die',
-    'think i\'m going to die',
-    'think i am going to die',
-    'feel like i\'m dying',
-    'feel like dying',
     'about to die',
-    'losing consciousness',
-    'blacking out',
-    'collapsing',
-    'severe pain',
-    'extreme pain',
-    'unbearable pain',
+    'having a heart attack',
+    'having a stroke',
   ];
 
   // Check patient messages only
@@ -221,123 +200,249 @@ export function extractPatientData(
 }
 
 /**
- * Extracts request-specific data from ElevenLabs analysis
+ * Parses comma-separated request types from ElevenLabs
+ * e.g., "fit_note,repeat_prescription,health_problem" -> ['fit_note', 'repeat_prescription', 'health_problem']
  */
-export function extractRequestData(
-  analysis: ElevenLabsWebhookPayload['data']['analysis']
-): { type: RequestType | null; data: RequestData | null } {
-  const collected = analysis?.data_collection_results;
+export function parseRequestTypes(value: string | null): RequestType[] {
+  if (!value) return [];
 
-  const requestTypeValue = parseStringValue(collected?.request_type);
-  if (!requestTypeValue) {
-    return { type: null, data: null };
-  }
+  const validTypes: RequestType[] = [
+    'health_problem', 'repeat_prescription', 'fit_note',
+    'routine_care', 'test_results', 'referral_followup',
+    'doctors_letter', 'other_admin'
+  ];
 
-  // Normalize request type value
-  const normalizedType = requestTypeValue.toLowerCase().replace(/[\s-]/g, '_');
-  const requestType = normalizedType as RequestType;
+  const types = value
+    .toLowerCase()
+    .split(',')
+    .map(t => t.trim().replace(/[\s-]/g, '_'))
+    .filter(t => validTypes.includes(t as RequestType)) as RequestType[];
 
+  // Remove duplicates
+  return [...new Set(types)];
+}
+
+/**
+ * Extracts data for a single request type
+ */
+function extractSingleRequestData(
+  requestType: RequestType,
+  collected: ElevenLabsDataCollected | undefined
+): RequestData | null {
   switch (requestType) {
     case 'health_problem':
       return {
         type: 'health_problem',
-        data: {
-          type: 'health_problem',
-          description: parseStringValue(collected?.health_problem_description) || '',
-          duration: parseStringValue(collected?.health_problem_duration) || '',
-          progression: parseStringValue(collected?.health_problem_progression) || '',
-          treatments_tried: parseStringValue(collected?.health_problem_tried) || '',
-          concerns: parseStringValue(collected?.health_problem_concerns) || '',
-          help_requested: parseStringValue(collected?.health_problem_help_wanted) || '',
-          best_contact_times: parseStringValue(collected?.best_contact_times) || '',
-        },
+        description: parseStringValue(collected?.health_problem_description) || '',
+        duration: parseStringValue(collected?.health_problem_duration) || '',
+        progression: parseStringValue(collected?.health_problem_progression) || '',
+        treatments_tried: parseStringValue(collected?.health_problem_tried) || '',
+        concerns: parseStringValue(collected?.health_problem_concerns) || '',
+        help_requested: parseStringValue(collected?.health_problem_help_wanted) || '',
+        best_contact_times: parseStringValue(collected?.best_contact_times) || '',
       };
 
     case 'repeat_prescription':
       return {
         type: 'repeat_prescription',
-        data: {
-          type: 'repeat_prescription',
-          medications: parseMedicationsString(collected?.medications_requested),
-          additional_notes: parseStringValue(collected?.prescription_notes) || '',
-        },
+        medications: parseMedicationsString(collected?.medications_requested),
+        additional_notes: parseStringValue(collected?.prescription_notes) || '',
       };
 
     case 'fit_note':
-      // Consolidated field: fit_note_dates_and_details contains dates + employer accommodations
       return {
         type: 'fit_note',
-        data: {
-          type: 'fit_note',
-          had_previous_note: parseBooleanValue(collected?.fit_note_previous) || false,
-          illness_description: parseStringValue(collected?.fit_note_illness) || '',
-          start_date: '', // Dates now in combined field
-          end_date: '', // Dates now in combined field
-          employer_accommodations: parseStringValue(collected?.fit_note_dates_and_details) || '',
-        },
+        had_previous_note: parseBooleanValue(collected?.fit_note_previous) || false,
+        illness_description: parseStringValue(collected?.fit_note_illness) || '',
+        start_date: '',
+        end_date: '',
+        employer_accommodations: parseStringValue(collected?.fit_note_dates_and_details) || '',
       };
 
     case 'routine_care':
-      // Consolidated field: routine_care_details contains type + details combined
       return {
         type: 'routine_care',
-        data: {
-          type: 'routine_care',
-          care_type: '', // Now in combined field
-          additional_details: parseStringValue(collected?.routine_care_details) || '',
-        },
+        care_type: '',
+        additional_details: parseStringValue(collected?.routine_care_details) || '',
       };
 
     case 'test_results':
-      // Consolidated field: test_details contains type, date, location, reason combined
       return {
         type: 'test_results',
-        data: {
-          type: 'test_results',
-          test_type: parseStringValue(collected?.test_details) || '', // Combined field goes here
-          test_date: '',
-          test_location: '',
-          reason_for_test: '',
-        },
+        test_type: parseStringValue(collected?.test_details) || '',
+        test_date: '',
+        test_location: '',
+        reason_for_test: '',
       };
 
     case 'referral_followup':
-      // Consolidated field: referral_details contains for, date, nhs/private, help combined
       return {
         type: 'referral_followup',
-        data: {
-          type: 'referral_followup',
-          referral_for: parseStringValue(collected?.referral_details) || '', // Combined field goes here
-          referral_date: '',
-          nhs_or_private: 'nhs' as 'nhs' | 'private',
-          help_needed: '',
-        },
+        referral_for: parseStringValue(collected?.referral_details) || '',
+        referral_date: '',
+        nhs_or_private: 'nhs' as 'nhs' | 'private',
+        help_needed: '',
       };
 
     case 'doctors_letter':
-      // Consolidated field: letter_details contains purpose + deadline combined
       return {
         type: 'doctors_letter',
-        data: {
-          type: 'doctors_letter',
-          letter_purpose: parseStringValue(collected?.letter_details) || '', // Combined field goes here
-          deadline: '',
-        },
+        letter_purpose: parseStringValue(collected?.letter_details) || '',
+        deadline: '',
       };
 
     case 'other_admin':
       return {
         type: 'other_admin',
-        data: {
-          type: 'other_admin',
-          description: parseStringValue(collected?.other_admin_description) || '',
-        },
+        description: parseStringValue(collected?.other_admin_description) || '',
       };
 
     default:
-      // Unknown type - return null
-      return { type: null, data: null };
+      return null;
   }
+}
+
+/**
+ * Extracts request-specific data from ElevenLabs analysis
+ * Supports multiple request types in a single call (comma-separated)
+ * Returns: { types: ['fit_note', 'repeat_prescription'], data: { fit_note: {...}, repeat_prescription: {...} } }
+ *
+ * FALLBACK DETECTION: If ElevenLabs doesn't capture request_type correctly,
+ * we detect types based on what data was actually collected.
+ */
+export function extractRequestData(
+  analysis: ElevenLabsWebhookPayload['data']['analysis']
+): { types: RequestType[]; data: MultiRequestData | null } {
+  const collected = analysis?.data_collection_results;
+
+  // Parse request_type from ElevenLabs
+  const requestTypeValue = parseStringValue(collected?.request_type);
+  let types = parseRequestTypes(requestTypeValue);
+
+  console.log(`[extractRequestData] Raw request_type value:`, collected?.request_type);
+  console.log(`[extractRequestData] Parsed string value:`, requestTypeValue);
+  console.log(`[extractRequestData] Initial types from request_type:`, types);
+
+  // FALLBACK DETECTION: Infer request types from data presence
+  // This ensures we capture all request types even if ElevenLabs only reports one
+  const detectedTypes = detectRequestTypesFromData(collected);
+  console.log(`[extractRequestData] Detected types from data:`, detectedTypes);
+
+  // Merge: use detected types if they add anything new
+  for (const detected of detectedTypes) {
+    if (!types.includes(detected)) {
+      console.log(`[extractRequestData] Adding detected type: ${detected}`);
+      types.push(detected);
+    }
+  }
+
+  if (types.length === 0) {
+    console.log(`[extractRequestData] No request types found`);
+    return { types: [], data: null };
+  }
+
+  // Extract data for each request type
+  const data: MultiRequestData = {};
+
+  for (const requestType of types) {
+    const requestData = extractSingleRequestData(requestType, collected);
+    if (requestData) {
+      data[requestType] = requestData;
+    }
+  }
+
+  console.log(`[extractRequestData] Final types:`, types);
+  console.log(`[extractRequestData] Final data keys:`, Object.keys(data));
+
+  // Return null if no data was extracted
+  if (Object.keys(data).length === 0) {
+    return { types, data: null };
+  }
+
+  return { types, data };
+}
+
+/**
+ * Detects request types based on what data was actually collected
+ * This is a fallback in case ElevenLabs doesn't correctly report all request types
+ */
+function detectRequestTypesFromData(collected: ElevenLabsDataCollected | undefined): RequestType[] {
+  if (!collected) return [];
+
+  const detected: RequestType[] = [];
+
+  // Health problem: has description, duration, or concerns
+  const healthDesc = parseStringValue(collected.health_problem_description);
+  const healthConcerns = parseStringValue(collected.health_problem_concerns);
+  if (healthDesc || healthConcerns) {
+    detected.push('health_problem');
+  }
+
+  // Repeat prescription: has medications_requested
+  const medications = parseStringValue(collected.medications_requested);
+  if (medications) {
+    detected.push('repeat_prescription');
+  }
+
+  // Fit note: has fit_note_illness
+  // BUT avoid false positives when ElevenLabs incorrectly captures health problem as fit_note_illness
+  const fitIllness = parseStringValue(collected.fit_note_illness);
+  if (fitIllness && !isEmergencyConfirmationResponse(fitIllness)) {
+    // Only count as fit_note if it's different from the health problem description
+    // ElevenLabs sometimes incorrectly captures the health problem in fit_note_illness
+    const isDifferentFromHealthProblem = !healthDesc ||
+      fitIllness.toLowerCase().trim() !== healthDesc.toLowerCase().trim();
+
+    // Also check for fit_note_dates_and_details or fit_note_previous to confirm it's a real fit note request
+    const hasFitNoteDates = parseStringValue(collected.fit_note_dates_and_details);
+    const hasFitNotePrevious = collected.fit_note_previous !== undefined && collected.fit_note_previous !== null;
+
+    if (isDifferentFromHealthProblem || hasFitNoteDates || hasFitNotePrevious) {
+      detected.push('fit_note');
+    }
+  }
+
+  // Routine care: has routine_care_details (but not generic "patient request")
+  const routineCare = parseStringValue(collected.routine_care_details);
+  if (routineCare && routineCare !== 'patient request') {
+    detected.push('routine_care');
+  }
+
+  // Test results: has test_details with actual content
+  const testDetails = parseStringValue(collected.test_details);
+  if (testDetails) {
+    detected.push('test_results');
+  }
+
+  // Referral followup: has referral_details
+  const referralDetails = parseStringValue(collected.referral_details);
+  if (referralDetails) {
+    detected.push('referral_followup');
+  }
+
+  // Doctor's letter: has letter_details with actual purpose (not just contact time)
+  const letterDetails = parseStringValue(collected.letter_details);
+  if (letterDetails && letterDetails !== 'anytime') {
+    detected.push('doctors_letter');
+  }
+
+  // Other admin: has other_admin_description (not just contact time)
+  const otherAdmin = parseStringValue(collected.other_admin_description);
+  if (otherAdmin && otherAdmin !== 'anytime') {
+    detected.push('other_admin');
+  }
+
+  return detected;
+}
+
+/**
+ * Checks if a value looks like an emergency confirmation response
+ * These get incorrectly captured in fit_note_illness sometimes
+ */
+function isEmergencyConfirmationResponse(value: string): boolean {
+  const normalized = value.toLowerCase().trim();
+  const emergencyResponses = ['no', "i'm good", 'im good', 'fine', "i'm fine", 'im fine', 'nope', 'not an emergency'];
+  return emergencyResponses.includes(normalized);
 }
 
 /**

@@ -75,11 +75,18 @@ export async function POST(request: NextRequest) {
 
     // Extract structured data (pass transcript for emergency detection)
     const patientData = extractPatientData(data.analysis, data.transcript);
-    const { type: requestType, data: requestData } = extractRequestData(data.analysis);
+    const { types: requestTypes, data: requestData } = extractRequestData(data.analysis);
     const transcript = formatTranscript(data.transcript);
     const status = determineStatus(data.analysis, data.status);
 
+    // Debug logging for multi-request
+    console.log(`[Webhook] Raw request_type from ElevenLabs:`, data.analysis?.data_collection_results?.request_type);
+    console.log(`[Webhook] Parsed requestTypes:`, requestTypes);
+    console.log(`[Webhook] Parsed requestData:`, JSON.stringify(requestData, null, 2));
+
     // Prepare submission record
+    // request_type is comma-separated for multi-request calls (e.g., "fit_note,repeat_prescription")
+    // request_data is keyed object for multi-request (e.g., { fit_note: {...}, repeat_prescription: {...} })
     const submission = {
       conversation_id: data.conversation_id,
       agent_id: data.agent_id,
@@ -88,7 +95,7 @@ export async function POST(request: NextRequest) {
       caller_phone: patientData.phone_number || null,
       status,
       patient_data: patientData,
-      request_type: requestType,
+      request_type: requestTypes.length > 0 ? requestTypes.join(',') : null,
       request_data: requestData,
       transcript,
       analysis: data.analysis,
