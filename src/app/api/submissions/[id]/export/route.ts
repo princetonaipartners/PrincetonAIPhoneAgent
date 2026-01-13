@@ -72,6 +72,15 @@ export async function POST(
       practiceName,
     });
 
+    // Generate document name for DocRaptor tracking
+    const date = new Date(submission.call_timestamp);
+    const dateStr = date.toISOString().split('T')[0];
+    const patientNameForDoc = `${submission.patient_data.first_name || ''}-${submission.patient_data.last_name || ''}`.replace(/\s+/g, '-').replace(/^-|-$/g, '') || 'Unknown';
+    const documentName = `patient-request-${patientNameForDoc}-${dateStr}`;
+
+    // Use test mode by default (set DOCRAPTOR_TEST_MODE=false for production billing)
+    const useTestMode = process.env.DOCRAPTOR_TEST_MODE !== 'false';
+
     // Call DocRaptor API
     const docRaptorResponse = await fetch('https://docraptor.com/docs', {
       method: 'POST',
@@ -81,16 +90,19 @@ export async function POST(
       body: JSON.stringify({
         user_credentials: docRaptorApiKey,
         doc: {
+          name: documentName,
           document_content: html,
           type: 'pdf',
-          test: process.env.NODE_ENV !== 'production', // Use test mode in development
+          test: useTestMode,
           prince_options: {
             media: 'print',
-            baseurl: 'https://example.com',
+            baseurl: process.env.NEXT_PUBLIC_APP_URL || 'https://example.com',
           },
         },
       }),
     });
+
+    console.log(`[Export] DocRaptor request - name: ${documentName}, test: ${useTestMode}`);
 
     if (!docRaptorResponse.ok) {
       const errorText = await docRaptorResponse.text();
@@ -104,11 +116,8 @@ export async function POST(
     // Get PDF buffer
     const pdfBuffer = await docRaptorResponse.arrayBuffer();
 
-    // Generate filename
-    const date = new Date(submission.call_timestamp);
-    const dateStr = date.toISOString().split('T')[0];
-    const patientName = `${submission.patient_data.first_name}-${submission.patient_data.last_name}`.replace(/\s+/g, '-') || 'Unknown';
-    const filename = `patient-request-${patientName}-${dateStr}.pdf`;
+    // Generate filename (reusing date and patient name from DocRaptor document name)
+    const filename = `${documentName}.pdf`;
 
     // Return PDF
     return new NextResponse(pdfBuffer, {
