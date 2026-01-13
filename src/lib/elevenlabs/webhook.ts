@@ -244,10 +244,11 @@ function formatPostcode(postcode: unknown): string {
   return cleaned;
 }
 
-function parsePreferredContact(value: string | undefined): PreferredContact {
-  if (!value) return 'phone';
+function parsePreferredContact(value: unknown): PreferredContact {
+  const stringValue = parseStringValue(value);
+  if (!stringValue) return 'phone';
 
-  const normalized = value.toLowerCase();
+  const normalized = stringValue.toLowerCase();
   if (normalized === 'text' || normalized === 'sms') return 'text';
   if (normalized === 'both' || normalized === 'either') return 'both';
   return 'phone';
