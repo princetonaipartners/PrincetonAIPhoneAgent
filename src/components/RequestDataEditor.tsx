@@ -260,51 +260,35 @@ export function RequestDataEditor({ submissionId, requestType, requestData, onUp
               <>
                 <DisplayField label="Had Previous Note" value={data.had_previous_note} />
                 <DisplayField label="Illness Description" value={data.illness_description} />
-                <div className="grid grid-cols-2 gap-4">
-                  <DisplayField label="Start Date" value={data.start_date} />
-                  <DisplayField label="End Date" value={data.end_date} />
-                </div>
-                <DisplayField label="Employer Accommodations" value={data.employer_accommodations} />
+                <DisplayField label="Dates & Details" value={data.employer_accommodations || `${data.start_date} - ${data.end_date}`} />
               </>
             )}
 
             {/* Routine Care Display */}
             {data?.type === 'routine_care' && (
               <>
-                <DisplayField label="Care Type" value={data.care_type} />
-                <DisplayField label="Additional Details" value={data.additional_details} />
+                <DisplayField label="Details" value={data.additional_details || data.care_type} />
               </>
             )}
 
             {/* Test Results Display */}
             {data?.type === 'test_results' && (
               <>
-                <DisplayField label="Test Type" value={data.test_type} />
-                <div className="grid grid-cols-2 gap-4">
-                  <DisplayField label="Test Date" value={data.test_date} />
-                  <DisplayField label="Test Location" value={data.test_location} />
-                </div>
-                <DisplayField label="Reason for Test" value={data.reason_for_test} />
+                <DisplayField label="Test Details" value={data.test_type} />
               </>
             )}
 
             {/* Referral Follow-up Display */}
             {data?.type === 'referral_followup' && (
               <>
-                <DisplayField label="Referral For" value={data.referral_for} />
-                <div className="grid grid-cols-2 gap-4">
-                  <DisplayField label="Referral Date" value={data.referral_date} />
-                  <DisplayField label="NHS or Private" value={data.nhs_or_private?.toUpperCase()} />
-                </div>
-                <DisplayField label="Help Needed" value={data.help_needed} />
+                <DisplayField label="Referral Details" value={data.referral_for} />
               </>
             )}
 
             {/* Doctor's Letter Display */}
             {data?.type === 'doctors_letter' && (
               <>
-                <DisplayField label="Letter Purpose" value={data.letter_purpose} />
-                <DisplayField label="Deadline" value={data.deadline} />
+                <DisplayField label="Letter Details" value={data.letter_purpose} />
               </>
             )}
 

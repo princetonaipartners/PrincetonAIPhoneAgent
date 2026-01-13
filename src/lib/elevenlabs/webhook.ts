@@ -248,59 +248,64 @@ export function extractRequestData(
       };
 
     case 'fit_note':
+      // Consolidated field: fit_note_dates_and_details contains dates + employer accommodations
       return {
         type: 'fit_note',
         data: {
           type: 'fit_note',
           had_previous_note: parseBooleanValue(collected?.fit_note_previous) || false,
           illness_description: parseStringValue(collected?.fit_note_illness) || '',
-          start_date: parseStringValue(collected?.fit_note_start_date) || '',
-          end_date: parseStringValue(collected?.fit_note_end_date) || '',
-          employer_accommodations: parseStringValue(collected?.fit_note_employer_help) || '',
+          start_date: '', // Dates now in combined field
+          end_date: '', // Dates now in combined field
+          employer_accommodations: parseStringValue(collected?.fit_note_dates_and_details) || '',
         },
       };
 
     case 'routine_care':
+      // Consolidated field: routine_care_details contains type + details combined
       return {
         type: 'routine_care',
         data: {
           type: 'routine_care',
-          care_type: parseStringValue(collected?.routine_care_type) || '',
+          care_type: '', // Now in combined field
           additional_details: parseStringValue(collected?.routine_care_details) || '',
         },
       };
 
     case 'test_results':
+      // Consolidated field: test_details contains type, date, location, reason combined
       return {
         type: 'test_results',
         data: {
           type: 'test_results',
-          test_type: parseStringValue(collected?.test_type) || '',
-          test_date: parseStringValue(collected?.test_date) || '',
-          test_location: parseStringValue(collected?.test_location) || '',
-          reason_for_test: parseStringValue(collected?.test_reason) || '',
+          test_type: parseStringValue(collected?.test_details) || '', // Combined field goes here
+          test_date: '',
+          test_location: '',
+          reason_for_test: '',
         },
       };
 
     case 'referral_followup':
+      // Consolidated field: referral_details contains for, date, nhs/private, help combined
       return {
         type: 'referral_followup',
         data: {
           type: 'referral_followup',
-          referral_for: parseStringValue(collected?.referral_for) || '',
-          referral_date: parseStringValue(collected?.referral_date) || '',
-          nhs_or_private: (parseStringValue(collected?.referral_nhs_or_private)?.toLowerCase() === 'private' ? 'private' : 'nhs') as 'nhs' | 'private',
-          help_needed: parseStringValue(collected?.referral_help_needed) || '',
+          referral_for: parseStringValue(collected?.referral_details) || '', // Combined field goes here
+          referral_date: '',
+          nhs_or_private: 'nhs' as 'nhs' | 'private',
+          help_needed: '',
         },
       };
 
     case 'doctors_letter':
+      // Consolidated field: letter_details contains purpose + deadline combined
       return {
         type: 'doctors_letter',
         data: {
           type: 'doctors_letter',
-          letter_purpose: parseStringValue(collected?.letter_purpose) || '',
-          deadline: parseStringValue(collected?.letter_deadline) || '',
+          letter_purpose: parseStringValue(collected?.letter_details) || '', // Combined field goes here
+          deadline: '',
         },
       };
 

@@ -168,32 +168,22 @@ export interface ElevenLabsDataCollected {
   medications_requested?: Medication[];
   prescription_notes?: string;
 
-  // Fit note fields
+  // Fit note fields (consolidated to fit 25 variable limit)
   fit_note_previous?: boolean;
   fit_note_illness?: string;
-  fit_note_start_date?: string;
-  fit_note_end_date?: string;
-  fit_note_employer_help?: string;
+  fit_note_dates_and_details?: string; // Contains dates + employer accommodations
 
-  // Routine care fields
-  routine_care_type?: string;
-  routine_care_details?: string;
+  // Routine care fields (consolidated)
+  routine_care_details?: string; // Contains type + details
 
-  // Test results fields
-  test_type?: string;
-  test_date?: string;
-  test_location?: string;
-  test_reason?: string;
+  // Test results fields (consolidated)
+  test_details?: string; // Contains type, date, location, reason
 
-  // Referral followup fields
-  referral_for?: string;
-  referral_date?: string;
-  referral_nhs_or_private?: string;
-  referral_help_needed?: string;
+  // Referral followup fields (consolidated)
+  referral_details?: string; // Contains for, date, nhs/private, help needed
 
-  // Doctor's letter fields
-  letter_purpose?: string;
-  letter_deadline?: string;
+  // Doctor's letter fields (consolidated)
+  letter_details?: string; // Contains purpose + deadline
 
   // Other admin fields
   other_admin_description?: string;

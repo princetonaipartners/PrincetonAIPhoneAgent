@@ -122,6 +122,7 @@ function renderPrescriptionDetails(data: RepeatPrescriptionRequest): string {
 
 /**
  * Generates HTML for fit note request details
+ * Note: dates and employer accommodations are now consolidated into one field
  */
 function renderFitNoteDetails(data: FitNoteRequest): string {
   return `
@@ -134,96 +135,60 @@ function renderFitNoteDetails(data: FitNoteRequest): string {
       <span class="value">${escapeHtml(data.illness_description) || 'Not provided'}</span>
     </div>
     <div class="detail-row">
-      <span class="label">Start Date:</span>
-      <span class="value">${escapeHtml(data.start_date) || 'Not provided'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">End Date:</span>
-      <span class="value">${escapeHtml(data.end_date) || 'Not provided'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Employer Accommodations:</span>
-      <span class="value">${escapeHtml(data.employer_accommodations) || 'None specified'}</span>
+      <span class="label">Dates & Details:</span>
+      <span class="value">${escapeHtml(data.employer_accommodations) || (data.start_date ? `${data.start_date} - ${data.end_date}` : 'Not provided')}</span>
     </div>
   `;
 }
 
 /**
  * Generates HTML for routine care request details
+ * Note: type and details are now consolidated into one field
  */
 function renderRoutineCareDetails(data: RoutineCareRequest): string {
   return `
     <div class="detail-row">
-      <span class="label">Care Type:</span>
-      <span class="value">${escapeHtml(data.care_type) || 'Not specified'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Additional Details:</span>
-      <span class="value">${escapeHtml(data.additional_details) || 'None'}</span>
+      <span class="label">Details:</span>
+      <span class="value">${escapeHtml(data.additional_details || data.care_type) || 'Not specified'}</span>
     </div>
   `;
 }
 
 /**
  * Generates HTML for test results request details
+ * Note: all fields are now consolidated into one field (test_type)
  */
 function renderTestResultsDetails(data: TestResultsRequest): string {
   return `
     <div class="detail-row">
-      <span class="label">Test Type:</span>
+      <span class="label">Test Details:</span>
       <span class="value">${escapeHtml(data.test_type) || 'Not specified'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Test Date:</span>
-      <span class="value">${escapeHtml(data.test_date) || 'Not provided'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Test Location:</span>
-      <span class="value">${escapeHtml(data.test_location) || 'Not provided'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Reason for Test:</span>
-      <span class="value">${escapeHtml(data.reason_for_test) || 'Not provided'}</span>
     </div>
   `;
 }
 
 /**
  * Generates HTML for referral followup request details
+ * Note: all fields are now consolidated into one field (referral_for)
  */
 function renderReferralDetails(data: ReferralFollowupRequest): string {
   return `
     <div class="detail-row">
-      <span class="label">Referral For:</span>
+      <span class="label">Referral Details:</span>
       <span class="value">${escapeHtml(data.referral_for) || 'Not specified'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Referral Date:</span>
-      <span class="value">${escapeHtml(data.referral_date) || 'Not provided'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">NHS or Private:</span>
-      <span class="value">${data.nhs_or_private?.toUpperCase() || 'Not specified'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Help Needed:</span>
-      <span class="value">${escapeHtml(data.help_needed) || 'Not specified'}</span>
     </div>
   `;
 }
 
 /**
  * Generates HTML for doctor's letter request details
+ * Note: purpose and deadline are now consolidated into one field (letter_purpose)
  */
 function renderDoctorsLetterDetails(data: DoctorsLetterRequest): string {
   return `
     <div class="detail-row">
-      <span class="label">Letter Purpose:</span>
+      <span class="label">Letter Details:</span>
       <span class="value">${escapeHtml(data.letter_purpose) || 'Not specified'}</span>
-    </div>
-    <div class="detail-row">
-      <span class="label">Deadline:</span>
-      <span class="value">${escapeHtml(data.deadline) || 'Not specified'}</span>
     </div>
     <p class="note-content" style="margin-top: 10px; color: #b45309;">Note: There may be a charge for this service.</p>
   `;
