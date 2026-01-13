@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { ActionBanner } from './ActionBanner';
 import { StatusEditor } from './StatusEditor';
 import { PatientDataEditor } from './PatientDataEditor';
 import { RequestDataEditor } from './RequestDataEditor';
@@ -100,6 +101,14 @@ export function SubmissionDetail({ initialData }: SubmissionDetailProps) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+        {/* Action Banner for urgent items */}
+        <ActionBanner
+          submissionId={submission.id}
+          status={submission.status}
+          isEmergency={submission.patient_data.emergency_confirmed === false}
+          onUpdate={refreshData}
+        />
+
         {/* Call Info */}
         <Section title="Call Information">
           <dl className="grid grid-cols-2 gap-4">
@@ -146,13 +155,15 @@ export function SubmissionDetail({ initialData }: SubmissionDetailProps) {
         </Section>
 
         {/* Notes */}
-        <Section title="">
-          <NotesPanel
-            submissionId={submission.id}
-            notes={submission.notes || []}
-            onUpdate={refreshData}
-          />
-        </Section>
+        <div id="notes">
+          <Section title="">
+            <NotesPanel
+              submissionId={submission.id}
+              notes={submission.notes || []}
+              onUpdate={refreshData}
+            />
+          </Section>
+        </div>
 
         {/* Transcript */}
         {submission.transcript && (
