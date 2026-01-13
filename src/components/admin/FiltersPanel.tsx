@@ -28,7 +28,7 @@ export function FiltersPanel({ filters, onChange, onReset }: FiltersPanelProps) 
       <select
         value={filters.status}
         onChange={(e) => onChange({ ...filters, status: e.target.value as Filters['status'] })}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
         <option value="all">All Status</option>
         <option value="pending">Pending</option>
@@ -41,7 +41,7 @@ export function FiltersPanel({ filters, onChange, onReset }: FiltersPanelProps) 
       <select
         value={filters.type}
         onChange={(e) => onChange({ ...filters, type: e.target.value as Filters['type'] })}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
         <option value="all">All Types</option>
         <option value="health_problem">Health Problem</option>
@@ -52,7 +52,7 @@ export function FiltersPanel({ filters, onChange, onReset }: FiltersPanelProps) 
       <select
         value={filters.date}
         onChange={(e) => onChange({ ...filters, date: e.target.value as Filters['date'] })}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
         <option value="all">All Time</option>
         <option value="today">Today</option>
@@ -65,7 +65,7 @@ export function FiltersPanel({ filters, onChange, onReset }: FiltersPanelProps) 
       <select
         value={filters.emergency}
         onChange={(e) => onChange({ ...filters, emergency: e.target.value as Filters['emergency'] })}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
         <option value="all">All Emergency Status</option>
         <option value="yes">Possible Emergency</option>
