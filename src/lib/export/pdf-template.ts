@@ -9,7 +9,10 @@ import type {
   DoctorsLetterRequest,
   OtherAdminRequest,
   RequestData,
+  MultiRequestData,
+  RequestType,
 } from '@/types';
+import { isMultiRequestData, getRequestTypes } from '@/types';
 
 /**
  * Generates a reference number for the submission
@@ -254,6 +257,43 @@ function getRequestTypeLabel(type: string | null): string {
 }
 
 /**
+ * Renders all request sections for multi-request support
+ */
+function renderAllRequestSections(
+  requestType: string | null,
+  requestData: RequestData | MultiRequestData | null
+): string {
+  const types = getRequestTypes(requestType);
+
+  if (types.length === 0 || !requestData) {
+    return `
+      <div class="section">
+        <div class="section-title">Request Details</div>
+        <p class="no-data">No request details available.</p>
+      </div>
+    `;
+  }
+
+  const isMultiFormat = isMultiRequestData(requestData);
+
+  return types.map((type) => {
+    const typeData = isMultiFormat
+      ? (requestData as MultiRequestData)[type] || null
+      : requestData as RequestData;
+
+    const details = renderRequestDetails(type, typeData);
+    const label = getRequestTypeLabel(type);
+
+    return `
+      <div class="section">
+        <div class="section-title">Request Details - ${label}</div>
+        ${details}
+      </div>
+    `;
+  }).join('');
+}
+
+/**
  * Generates HTML for staff notes
  */
 function renderNotes(notes: SubmissionWithDetails['notes']): string {
@@ -322,8 +362,8 @@ export function generatePdfHtml(
     ? '<span class="status-ok">No Emergency</span>'
     : '<span class="status-alert">POSSIBLE EMERGENCY - REVIEW REQUIRED</span>';
 
-  const requestTypeLabel = getRequestTypeLabel(submission.request_type);
-  const requestDetails = renderRequestDetails(submission.request_type, submission.request_data);
+  // Render all request sections (supports multi-request)
+  const requestSections = renderAllRequestSections(submission.request_type, submission.request_data);
 
   return `
 <!DOCTYPE html>
@@ -568,10 +608,7 @@ export function generatePdfHtml(
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Request Details - ${requestTypeLabel}</div>
-    ${requestDetails}
-  </div>
+  ${requestSections}
 
   ${includeNotes ? `
   <div class="section">
