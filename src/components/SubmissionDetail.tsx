@@ -7,6 +7,7 @@ import { PatientDataEditor } from './PatientDataEditor';
 import { RequestDataEditor } from './RequestDataEditor';
 import { NotesPanel } from './NotesPanel';
 import { EditHistoryPanel } from './EditHistoryPanel';
+import { ExportButton } from './ExportButton';
 import type { SubmissionWithDetails, HealthProblemRequest, RepeatPrescriptionRequest } from '@/types';
 
 interface SubmissionDetailProps {
@@ -83,11 +84,14 @@ export function SubmissionDetail({ initialData }: SubmissionDetailProps) {
                 {formatDate(submission.call_timestamp)}
               </p>
             </div>
-            <StatusEditor
-              submissionId={submission.id}
-              currentStatus={submission.status}
-              onUpdate={refreshData}
-            />
+            <div className="flex items-center gap-3">
+              <ExportButton submissionId={submission.id} />
+              <StatusEditor
+                submissionId={submission.id}
+                currentStatus={submission.status}
+                onUpdate={refreshData}
+              />
+            </div>
           </div>
           {loading && (
             <div className="mt-2 text-sm text-blue-600">Refreshing...</div>
