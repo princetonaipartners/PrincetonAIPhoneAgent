@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
       payload: { type: payload.type, status: data.status },
     });
 
-    // Extract structured data
-    const patientData = extractPatientData(data.analysis);
+    // Extract structured data (pass transcript for emergency detection)
+    const patientData = extractPatientData(data.analysis, data.transcript);
     const { type: requestType, data: requestData } = extractRequestData(data.analysis);
     const transcript = formatTranscript(data.transcript);
     const status = determineStatus(data.analysis, data.status);

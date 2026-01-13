@@ -84,12 +84,12 @@ export function PatientDataEditor({ submissionId, patientData, onUpdate }: Patie
             <dd className="mt-1 text-sm text-gray-900 capitalize">{data.preferred_contact || <span className="text-gray-400 italic">Not provided</span>}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">Emergency Confirmed</dt>
+            <dt className="text-sm font-medium text-gray-500">Emergency Status</dt>
             <dd className="mt-1 text-sm text-gray-900">
               {data.emergency_confirmed ? (
-                <span className="text-green-600">Yes - Not an emergency</span>
+                <span className="text-green-600">No - Not an emergency</span>
               ) : (
-                <span className="text-orange-600">Not confirmed</span>
+                <span className="text-red-600 font-medium">Possible Emergency - Review Required</span>
               )}
             </dd>
           </div>
@@ -152,14 +152,14 @@ export function PatientDataEditor({ submissionId, patientData, onUpdate }: Patie
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Confirmed</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Status</label>
           <select
             value={data.emergency_confirmed ? 'true' : 'false'}
             onChange={(e) => setData({ ...data, emergency_confirmed: e.target.value === 'true' })}
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="true">Yes - Not an emergency</option>
-            <option value="false">Not confirmed</option>
+            <option value="true">No - Not an emergency</option>
+            <option value="false">Possible Emergency</option>
           </select>
         </div>
       </div>

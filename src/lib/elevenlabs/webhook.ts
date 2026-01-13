@@ -111,12 +111,68 @@ export function parseWebhookPayload(body: string): {
 }
 
 /**
+ * Detects if patient indicated this IS an emergency from transcript
+ * Returns true if emergency phrases are found in patient messages
+ */
+export function detectEmergencyFromTranscript(
+  transcript: ElevenLabsWebhookPayload['data']['transcript']
+): boolean {
+  if (!transcript || transcript.length === 0) {
+    return false;
+  }
+
+  const emergencyPhrases = [
+    'this is an emergency',
+    'i have an emergency',
+    'it is an emergency',
+    'is an emergency',
+    'having an emergency',
+    'yes emergency',
+    'need ambulance',
+    'call 999',
+    'call an ambulance',
+    'need an ambulance',
+    'chest pain',
+    'can\'t breathe',
+    'cannot breathe',
+    'difficulty breathing',
+    'severe bleeding',
+    'having a stroke',
+  ];
+
+  // Check patient messages only
+  const patientMessages = transcript
+    .filter(entry => entry.role === 'user')
+    .map(entry => entry.message.toLowerCase());
+
+  for (const message of patientMessages) {
+    for (const phrase of emergencyPhrases) {
+      if (message.includes(phrase)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Extracts structured patient data from ElevenLabs analysis
+ * If transcript indicates an emergency, overrides emergency_confirmed to false
  */
 export function extractPatientData(
-  analysis: ElevenLabsWebhookPayload['data']['analysis']
+  analysis: ElevenLabsWebhookPayload['data']['analysis'],
+  transcript?: ElevenLabsWebhookPayload['data']['transcript']
 ): PatientData {
   const data = analysis?.data_collection_results || {};
+
+  // Check if ElevenLabs said it's not an emergency
+  let emergencyConfirmed = parseBooleanValue(data.emergency_confirmed);
+
+  // Override: if transcript shows patient said it IS an emergency, set to false
+  if (transcript && detectEmergencyFromTranscript(transcript)) {
+    emergencyConfirmed = false;
+  }
 
   return {
     first_name: parseStringValue(data.patient_first_name) || '',
@@ -124,7 +180,7 @@ export function extractPatientData(
     postcode: formatPostcode(parseStringValue(data.patient_postcode) || ''),
     phone_number: parseStringValue(data.patient_phone) || '',
     preferred_contact: parsePreferredContact(data.preferred_contact),
-    emergency_confirmed: parseBooleanValue(data.emergency_confirmed),
+    emergency_confirmed: emergencyConfirmed,
   };
 }
 

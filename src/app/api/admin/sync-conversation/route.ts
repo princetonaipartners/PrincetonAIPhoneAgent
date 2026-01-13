@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
       payload: { source: 'api_fetch' },
     });
 
-    // Extract structured data
-    const patientData = extractPatientData(data.analysis);
+    // Extract structured data (pass transcript for emergency detection)
+    const patientData = extractPatientData(data.analysis, data.transcript);
     const { type: requestType, data: requestData } = extractRequestData(data.analysis);
     const transcript = formatTranscript(data.transcript);
     const status = determineStatus(data.analysis, data.status as 'done' | 'failed');
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         ? new Date(data.metadata.start_time_unix_secs * 1000).toISOString()
         : new Date().toISOString(),
       call_duration_secs: data.metadata.call_duration_secs,
-      caller_phone: null,
+      caller_phone: patientData.phone_number || null,
       status,
       patient_data: patientData,
       request_type: requestType,
