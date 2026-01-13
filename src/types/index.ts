@@ -105,6 +105,39 @@ export type RequestData =
   | DoctorsLetterRequest
   | OtherAdminRequest;
 
+// Multi-request data structure - object with type keys for multiple request types in one call
+export type MultiRequestData = {
+  [K in RequestType]?: RequestData;
+};
+
+/**
+ * Type guard to check if request_data is in the new multi-request format
+ * Multi-request format: { fit_note: {...}, repeat_prescription: {...} }
+ * Single-request format: { type: 'fit_note', ... }
+ */
+export function isMultiRequestData(data: unknown): data is MultiRequestData {
+  if (!data || typeof data !== 'object') return false;
+  // Single request data has a 'type' property at the top level
+  // Multi-request data has keys like 'fit_note', 'health_problem', etc.
+  return !('type' in data);
+}
+
+/**
+ * Parse comma-separated request_type string into array of RequestType
+ */
+export function getRequestTypes(requestType: string | null): RequestType[] {
+  if (!requestType) return [];
+  const validTypes: RequestType[] = [
+    'health_problem', 'repeat_prescription', 'fit_note',
+    'routine_care', 'test_results', 'referral_followup',
+    'doctors_letter', 'other_admin'
+  ];
+  return requestType
+    .split(',')
+    .map(t => t.trim() as RequestType)
+    .filter(t => validTypes.includes(t));
+}
+
 // ============================================
 // Submission Types
 // ============================================
@@ -120,8 +153,8 @@ export interface Submission {
   caller_phone: string | null;
   status: SubmissionStatus;
   patient_data: PatientData;
-  request_type: RequestType | null;
-  request_data: RequestData | null;
+  request_type: string | null; // Comma-separated: "fit_note,repeat_prescription" or single "health_problem"
+  request_data: RequestData | MultiRequestData | null; // Supports both old and new format
   transcript: string | null;
   analysis: ElevenLabsAnalysis | null;
   created_at: string;
