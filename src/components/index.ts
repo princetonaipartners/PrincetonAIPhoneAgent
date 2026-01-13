@@ -5,3 +5,4 @@ export { NotesPanel } from './NotesPanel';
 export { EditHistoryPanel } from './EditHistoryPanel';
 export { SubmissionDetail } from './SubmissionDetail';
 export { ExportButton } from './ExportButton';
+export { TranscriptViewer } from './TranscriptViewer';

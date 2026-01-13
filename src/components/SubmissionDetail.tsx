@@ -9,6 +9,7 @@ import { RequestDataEditor } from './RequestDataEditor';
 import { NotesPanel } from './NotesPanel';
 import { EditHistoryPanel } from './EditHistoryPanel';
 import { ExportButton } from './ExportButton';
+import { TranscriptViewer } from './TranscriptViewer';
 import type { SubmissionWithDetails, HealthProblemRequest, RepeatPrescriptionRequest } from '@/types';
 
 interface SubmissionDetailProps {
@@ -168,9 +169,7 @@ export function SubmissionDetail({ initialData }: SubmissionDetailProps) {
         {/* Transcript */}
         {submission.transcript && (
           <Section title="Call Transcript">
-            <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded-lg overflow-x-auto">
-              {submission.transcript}
-            </pre>
+            <TranscriptViewer transcript={submission.transcript} />
           </Section>
         )}
 

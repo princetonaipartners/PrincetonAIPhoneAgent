@@ -300,4 +300,5 @@ export interface UpdateSubmissionRequest {
 export interface AddNoteRequest {
   note_type: NoteType;
   content: string;
+  created_by?: string;
 }

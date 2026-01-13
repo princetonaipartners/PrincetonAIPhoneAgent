@@ -89,6 +89,7 @@ export async function POST(
         submission_id: id,
         note_type: body.note_type,
         content: body.content.trim(),
+        created_by: body.created_by?.trim() || null,
       })
       .select()
       .single();
