@@ -84,7 +84,7 @@ export function StatusEditor({ submissionId, currentStatus, onUpdate }: StatusEd
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as SubmissionStatus)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -102,7 +102,7 @@ export function StatusEditor({ submissionId, currentStatus, onUpdate }: StatusEd
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="e.g., Reviewed by Dr. Smith"
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
       {error && (
