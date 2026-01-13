@@ -24,12 +24,14 @@ function parseTranscript(transcript: string): TranscriptMessage[] {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
-    // Check for role prefixes (Agent: or User:)
-    const agentMatch = trimmedLine.match(/^Agent(?:\s*\[([^\]]+)\])?:\s*(.*)$/i);
-    const userMatch = trimmedLine.match(/^User(?:\s*\[([^\]]+)\])?:\s*(.*)$/i);
-    const patientMatch = trimmedLine.match(/^Patient(?:\s*\[([^\]]+)\])?:\s*(.*)$/i);
+    // Format: [0:00] Agent: message or [0:00] Patient: message
+    // Also handle without timestamp: Agent: message
+    const timestampedAgentMatch = trimmedLine.match(/^\[([^\]]+)\]\s*Agent:\s*(.*)$/i);
+    const timestampedPatientMatch = trimmedLine.match(/^\[([^\]]+)\]\s*(?:Patient|User):\s*(.*)$/i);
+    const plainAgentMatch = trimmedLine.match(/^Agent:\s*(.*)$/i);
+    const plainPatientMatch = trimmedLine.match(/^(?:Patient|User):\s*(.*)$/i);
 
-    if (agentMatch) {
+    if (timestampedAgentMatch) {
       // Save previous message if exists
       if (currentRole && currentMessage.trim()) {
         messages.push({
@@ -39,9 +41,9 @@ function parseTranscript(transcript: string): TranscriptMessage[] {
         });
       }
       currentRole = 'agent';
-      currentTimestamp = agentMatch[1] || '';
-      currentMessage = agentMatch[2] || '';
-    } else if (userMatch || patientMatch) {
+      currentTimestamp = timestampedAgentMatch[1] || '';
+      currentMessage = timestampedAgentMatch[2] || '';
+    } else if (timestampedPatientMatch) {
       // Save previous message if exists
       if (currentRole && currentMessage.trim()) {
         messages.push({
@@ -51,9 +53,32 @@ function parseTranscript(transcript: string): TranscriptMessage[] {
         });
       }
       currentRole = 'user';
-      const match = userMatch || patientMatch;
-      currentTimestamp = match![1] || '';
-      currentMessage = match![2] || '';
+      currentTimestamp = timestampedPatientMatch[1] || '';
+      currentMessage = timestampedPatientMatch[2] || '';
+    } else if (plainAgentMatch) {
+      // Save previous message if exists
+      if (currentRole && currentMessage.trim()) {
+        messages.push({
+          role: currentRole,
+          message: currentMessage.trim(),
+          timestamp: currentTimestamp || undefined,
+        });
+      }
+      currentRole = 'agent';
+      currentTimestamp = '';
+      currentMessage = plainAgentMatch[1] || '';
+    } else if (plainPatientMatch) {
+      // Save previous message if exists
+      if (currentRole && currentMessage.trim()) {
+        messages.push({
+          role: currentRole,
+          message: currentMessage.trim(),
+          timestamp: currentTimestamp || undefined,
+        });
+      }
+      currentRole = 'user';
+      currentTimestamp = '';
+      currentMessage = plainPatientMatch[1] || '';
     } else if (currentRole) {
       // Continue the current message
       currentMessage += ' ' + trimmedLine;

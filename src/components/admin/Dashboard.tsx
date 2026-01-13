@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { DashboardStats } from './DashboardStats';
 import { AttentionPanel } from './AttentionPanel';
 import { SearchBar } from './SearchBar';
@@ -280,7 +281,7 @@ export function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900">PrincetonAI Phone Agent</h1>
               <p className="text-sm text-gray-500 mt-1">Staff Dashboard</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="w-full sm:w-80">
                 <SearchBar
                   value={search}
@@ -288,6 +289,26 @@ export function Dashboard() {
                   isSearching={submissionsLoading && search.length > 0}
                 />
               </div>
+              <Link
+                href="/admin/data"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                title="View Raw Data"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Data</span>
+              </Link>
               <button
                 onClick={handleRefresh}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
