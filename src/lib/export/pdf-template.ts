@@ -1,4 +1,15 @@
-import type { SubmissionWithDetails, HealthProblemRequest, RepeatPrescriptionRequest } from '@/types';
+import type {
+  SubmissionWithDetails,
+  HealthProblemRequest,
+  RepeatPrescriptionRequest,
+  FitNoteRequest,
+  RoutineCareRequest,
+  TestResultsRequest,
+  ReferralFollowupRequest,
+  DoctorsLetterRequest,
+  OtherAdminRequest,
+  RequestData,
+} from '@/types';
 
 /**
  * Generates a reference number for the submission
@@ -110,6 +121,174 @@ function renderPrescriptionDetails(data: RepeatPrescriptionRequest): string {
 }
 
 /**
+ * Generates HTML for fit note request details
+ */
+function renderFitNoteDetails(data: FitNoteRequest): string {
+  return `
+    <div class="detail-row">
+      <span class="label">Had Previous Note:</span>
+      <span class="value">${data.had_previous_note ? 'Yes' : 'No'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Illness Description:</span>
+      <span class="value">${escapeHtml(data.illness_description) || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Start Date:</span>
+      <span class="value">${escapeHtml(data.start_date) || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">End Date:</span>
+      <span class="value">${escapeHtml(data.end_date) || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Employer Accommodations:</span>
+      <span class="value">${escapeHtml(data.employer_accommodations) || 'None specified'}</span>
+    </div>
+  `;
+}
+
+/**
+ * Generates HTML for routine care request details
+ */
+function renderRoutineCareDetails(data: RoutineCareRequest): string {
+  return `
+    <div class="detail-row">
+      <span class="label">Care Type:</span>
+      <span class="value">${escapeHtml(data.care_type) || 'Not specified'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Additional Details:</span>
+      <span class="value">${escapeHtml(data.additional_details) || 'None'}</span>
+    </div>
+  `;
+}
+
+/**
+ * Generates HTML for test results request details
+ */
+function renderTestResultsDetails(data: TestResultsRequest): string {
+  return `
+    <div class="detail-row">
+      <span class="label">Test Type:</span>
+      <span class="value">${escapeHtml(data.test_type) || 'Not specified'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Test Date:</span>
+      <span class="value">${escapeHtml(data.test_date) || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Test Location:</span>
+      <span class="value">${escapeHtml(data.test_location) || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Reason for Test:</span>
+      <span class="value">${escapeHtml(data.reason_for_test) || 'Not provided'}</span>
+    </div>
+  `;
+}
+
+/**
+ * Generates HTML for referral followup request details
+ */
+function renderReferralDetails(data: ReferralFollowupRequest): string {
+  return `
+    <div class="detail-row">
+      <span class="label">Referral For:</span>
+      <span class="value">${escapeHtml(data.referral_for) || 'Not specified'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Referral Date:</span>
+      <span class="value">${escapeHtml(data.referral_date) || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">NHS or Private:</span>
+      <span class="value">${data.nhs_or_private?.toUpperCase() || 'Not specified'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Help Needed:</span>
+      <span class="value">${escapeHtml(data.help_needed) || 'Not specified'}</span>
+    </div>
+  `;
+}
+
+/**
+ * Generates HTML for doctor's letter request details
+ */
+function renderDoctorsLetterDetails(data: DoctorsLetterRequest): string {
+  return `
+    <div class="detail-row">
+      <span class="label">Letter Purpose:</span>
+      <span class="value">${escapeHtml(data.letter_purpose) || 'Not specified'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Deadline:</span>
+      <span class="value">${escapeHtml(data.deadline) || 'Not specified'}</span>
+    </div>
+    <p class="note-content" style="margin-top: 10px; color: #b45309;">Note: There may be a charge for this service.</p>
+  `;
+}
+
+/**
+ * Generates HTML for other admin request details
+ */
+function renderOtherAdminDetails(data: OtherAdminRequest): string {
+  return `
+    <div class="detail-row">
+      <span class="label">Description:</span>
+      <span class="value">${escapeHtml(data.description) || 'Not provided'}</span>
+    </div>
+  `;
+}
+
+/**
+ * Renders request details based on type
+ */
+function renderRequestDetails(type: string | null, data: RequestData | null): string {
+  if (!type || !data) {
+    return '<p class="no-data">No request details available.</p>';
+  }
+
+  switch (data.type) {
+    case 'health_problem':
+      return renderHealthProblemDetails(data);
+    case 'repeat_prescription':
+      return renderPrescriptionDetails(data);
+    case 'fit_note':
+      return renderFitNoteDetails(data);
+    case 'routine_care':
+      return renderRoutineCareDetails(data);
+    case 'test_results':
+      return renderTestResultsDetails(data);
+    case 'referral_followup':
+      return renderReferralDetails(data);
+    case 'doctors_letter':
+      return renderDoctorsLetterDetails(data);
+    case 'other_admin':
+      return renderOtherAdminDetails(data);
+    default:
+      return '<p class="no-data">No request details available.</p>';
+  }
+}
+
+/**
+ * Gets the label for request type
+ */
+function getRequestTypeLabel(type: string | null): string {
+  const labels: Record<string, string> = {
+    health_problem: 'Health Problem',
+    repeat_prescription: 'Repeat Prescription',
+    fit_note: 'Fit (Sick) Note',
+    routine_care: 'Routine Care',
+    test_results: 'Test Results',
+    referral_followup: 'Referral Follow-up',
+    doctors_letter: "Doctor's Letter",
+    other_admin: 'Other Admin Request',
+  };
+  return type ? (labels[type] || 'Not Specified') : 'Not Specified';
+}
+
+/**
  * Generates HTML for staff notes
  */
 function renderNotes(notes: SubmissionWithDetails['notes']): string {
@@ -178,18 +357,8 @@ export function generatePdfHtml(
     ? '<span class="status-ok">No Emergency</span>'
     : '<span class="status-alert">POSSIBLE EMERGENCY - REVIEW REQUIRED</span>';
 
-  const requestTypeLabel = submission.request_type === 'health_problem'
-    ? 'Health Problem'
-    : submission.request_type === 'repeat_prescription'
-    ? 'Repeat Prescription'
-    : 'Not Specified';
-
-  let requestDetails = '<p class="no-data">No request details available.</p>';
-  if (submission.request_type === 'health_problem' && submission.request_data) {
-    requestDetails = renderHealthProblemDetails(submission.request_data as HealthProblemRequest);
-  } else if (submission.request_type === 'repeat_prescription' && submission.request_data) {
-    requestDetails = renderPrescriptionDetails(submission.request_data as RepeatPrescriptionRequest);
-  }
+  const requestTypeLabel = getRequestTypeLabel(submission.request_type);
+  const requestDetails = renderRequestDetails(submission.request_type, submission.request_data);
 
   return `
 <!DOCTYPE html>

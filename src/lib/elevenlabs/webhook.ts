@@ -217,32 +217,106 @@ export function extractRequestData(
     return { type: null, data: null };
   }
 
-  const requestType = requestTypeValue as RequestType;
+  // Normalize request type value
+  const normalizedType = requestTypeValue.toLowerCase().replace(/[\s-]/g, '_');
+  const requestType = normalizedType as RequestType;
 
-  if (requestType === 'health_problem') {
-    const healthData: HealthProblemRequest = {
-      type: 'health_problem',
-      description: parseStringValue(collected?.health_problem_description) || '',
-      duration: parseStringValue(collected?.health_problem_duration) || '',
-      progression: parseStringValue(collected?.health_problem_progression) || '',
-      treatments_tried: parseStringValue(collected?.health_problem_tried) || '',
-      concerns: parseStringValue(collected?.health_problem_concerns) || '',
-      help_requested: parseStringValue(collected?.health_problem_help_wanted) || '',
-      best_contact_times: parseStringValue(collected?.best_contact_times) || '',
-    };
-    return { type: requestType, data: healthData };
+  switch (requestType) {
+    case 'health_problem':
+      return {
+        type: 'health_problem',
+        data: {
+          type: 'health_problem',
+          description: parseStringValue(collected?.health_problem_description) || '',
+          duration: parseStringValue(collected?.health_problem_duration) || '',
+          progression: parseStringValue(collected?.health_problem_progression) || '',
+          treatments_tried: parseStringValue(collected?.health_problem_tried) || '',
+          concerns: parseStringValue(collected?.health_problem_concerns) || '',
+          help_requested: parseStringValue(collected?.health_problem_help_wanted) || '',
+          best_contact_times: parseStringValue(collected?.best_contact_times) || '',
+        },
+      };
+
+    case 'repeat_prescription':
+      return {
+        type: 'repeat_prescription',
+        data: {
+          type: 'repeat_prescription',
+          medications: parseArrayValue(collected?.medications_requested) || [],
+          additional_notes: parseStringValue(collected?.prescription_notes) || '',
+        },
+      };
+
+    case 'fit_note':
+      return {
+        type: 'fit_note',
+        data: {
+          type: 'fit_note',
+          had_previous_note: parseBooleanValue(collected?.fit_note_previous) || false,
+          illness_description: parseStringValue(collected?.fit_note_illness) || '',
+          start_date: parseStringValue(collected?.fit_note_start_date) || '',
+          end_date: parseStringValue(collected?.fit_note_end_date) || '',
+          employer_accommodations: parseStringValue(collected?.fit_note_employer_help) || '',
+        },
+      };
+
+    case 'routine_care':
+      return {
+        type: 'routine_care',
+        data: {
+          type: 'routine_care',
+          care_type: parseStringValue(collected?.routine_care_type) || '',
+          additional_details: parseStringValue(collected?.routine_care_details) || '',
+        },
+      };
+
+    case 'test_results':
+      return {
+        type: 'test_results',
+        data: {
+          type: 'test_results',
+          test_type: parseStringValue(collected?.test_type) || '',
+          test_date: parseStringValue(collected?.test_date) || '',
+          test_location: parseStringValue(collected?.test_location) || '',
+          reason_for_test: parseStringValue(collected?.test_reason) || '',
+        },
+      };
+
+    case 'referral_followup':
+      return {
+        type: 'referral_followup',
+        data: {
+          type: 'referral_followup',
+          referral_for: parseStringValue(collected?.referral_for) || '',
+          referral_date: parseStringValue(collected?.referral_date) || '',
+          nhs_or_private: (parseStringValue(collected?.referral_nhs_or_private)?.toLowerCase() === 'private' ? 'private' : 'nhs') as 'nhs' | 'private',
+          help_needed: parseStringValue(collected?.referral_help_needed) || '',
+        },
+      };
+
+    case 'doctors_letter':
+      return {
+        type: 'doctors_letter',
+        data: {
+          type: 'doctors_letter',
+          letter_purpose: parseStringValue(collected?.letter_purpose) || '',
+          deadline: parseStringValue(collected?.letter_deadline) || '',
+        },
+      };
+
+    case 'other_admin':
+      return {
+        type: 'other_admin',
+        data: {
+          type: 'other_admin',
+          description: parseStringValue(collected?.other_admin_description) || '',
+        },
+      };
+
+    default:
+      // Unknown type - return null
+      return { type: null, data: null };
   }
-
-  if (requestType === 'repeat_prescription') {
-    const prescriptionData: RepeatPrescriptionRequest = {
-      type: 'repeat_prescription',
-      medications: parseArrayValue(collected?.medications_requested) || [],
-      additional_notes: parseStringValue(collected?.prescription_notes) || '',
-    };
-    return { type: requestType, data: prescriptionData };
-  }
-
-  return { type: null, data: null };
 }
 
 /**

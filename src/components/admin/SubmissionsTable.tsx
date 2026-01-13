@@ -39,11 +39,23 @@ function TypeBadge({ type }: { type: RequestType | null }) {
   const styles: Record<RequestType, string> = {
     health_problem: 'bg-blue-100 text-blue-800',
     repeat_prescription: 'bg-purple-100 text-purple-800',
+    fit_note: 'bg-amber-100 text-amber-800',
+    routine_care: 'bg-teal-100 text-teal-800',
+    test_results: 'bg-cyan-100 text-cyan-800',
+    referral_followup: 'bg-indigo-100 text-indigo-800',
+    doctors_letter: 'bg-pink-100 text-pink-800',
+    other_admin: 'bg-gray-100 text-gray-800',
   };
 
   const labels: Record<RequestType, string> = {
     health_problem: 'Health',
     repeat_prescription: 'Rx',
+    fit_note: 'Sick Note',
+    routine_care: 'Routine',
+    test_results: 'Test',
+    referral_followup: 'Referral',
+    doctors_letter: 'Letter',
+    other_admin: 'Admin',
   };
 
   return (

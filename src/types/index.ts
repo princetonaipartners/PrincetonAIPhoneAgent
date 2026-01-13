@@ -21,7 +21,15 @@ export interface PatientData {
 // Request Types
 // ============================================
 
-export type RequestType = 'health_problem' | 'repeat_prescription';
+export type RequestType =
+  | 'health_problem'
+  | 'repeat_prescription'
+  | 'fit_note'
+  | 'routine_care'
+  | 'test_results'
+  | 'referral_followup'
+  | 'doctors_letter'
+  | 'other_admin';
 
 export interface HealthProblemRequest {
   type: 'health_problem';
@@ -45,7 +53,57 @@ export interface RepeatPrescriptionRequest {
   additional_notes: string;
 }
 
-export type RequestData = HealthProblemRequest | RepeatPrescriptionRequest;
+export interface FitNoteRequest {
+  type: 'fit_note';
+  had_previous_note: boolean;
+  illness_description: string;
+  start_date: string;
+  end_date: string;
+  employer_accommodations: string;
+}
+
+export interface RoutineCareRequest {
+  type: 'routine_care';
+  care_type: string; // e.g., "medication review", "vaccination", "screening"
+  additional_details: string;
+}
+
+export interface TestResultsRequest {
+  type: 'test_results';
+  test_type: string;
+  test_date: string;
+  test_location: string;
+  reason_for_test: string;
+}
+
+export interface ReferralFollowupRequest {
+  type: 'referral_followup';
+  referral_for: string;
+  referral_date: string;
+  nhs_or_private: 'nhs' | 'private';
+  help_needed: string;
+}
+
+export interface DoctorsLetterRequest {
+  type: 'doctors_letter';
+  letter_purpose: string;
+  deadline: string;
+}
+
+export interface OtherAdminRequest {
+  type: 'other_admin';
+  description: string;
+}
+
+export type RequestData =
+  | HealthProblemRequest
+  | RepeatPrescriptionRequest
+  | FitNoteRequest
+  | RoutineCareRequest
+  | TestResultsRequest
+  | ReferralFollowupRequest
+  | DoctorsLetterRequest
+  | OtherAdminRequest;
 
 // ============================================
 // Submission Types
@@ -88,6 +146,7 @@ export interface ElevenLabsMetadata {
 }
 
 export interface ElevenLabsDataCollected {
+  // Patient details
   patient_first_name?: string;
   patient_last_name?: string;
   patient_postcode?: string;
@@ -95,6 +154,8 @@ export interface ElevenLabsDataCollected {
   preferred_contact?: string;
   emergency_confirmed?: boolean;
   request_type?: string;
+
+  // Health problem fields
   health_problem_description?: string;
   health_problem_duration?: string;
   health_problem_progression?: string;
@@ -102,8 +163,41 @@ export interface ElevenLabsDataCollected {
   health_problem_concerns?: string;
   health_problem_help_wanted?: string;
   best_contact_times?: string;
+
+  // Repeat prescription fields
   medications_requested?: Medication[];
   prescription_notes?: string;
+
+  // Fit note fields
+  fit_note_previous?: boolean;
+  fit_note_illness?: string;
+  fit_note_start_date?: string;
+  fit_note_end_date?: string;
+  fit_note_employer_help?: string;
+
+  // Routine care fields
+  routine_care_type?: string;
+  routine_care_details?: string;
+
+  // Test results fields
+  test_type?: string;
+  test_date?: string;
+  test_location?: string;
+  test_reason?: string;
+
+  // Referral followup fields
+  referral_for?: string;
+  referral_date?: string;
+  referral_nhs_or_private?: string;
+  referral_help_needed?: string;
+
+  // Doctor's letter fields
+  letter_purpose?: string;
+  letter_deadline?: string;
+
+  // Other admin fields
+  other_admin_description?: string;
+
   call_successful?: boolean;
 }
 

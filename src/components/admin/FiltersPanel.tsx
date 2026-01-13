@@ -46,6 +46,12 @@ export function FiltersPanel({ filters, onChange, onReset }: FiltersPanelProps) 
         <option value="all">All Types</option>
         <option value="health_problem">Health Problem</option>
         <option value="repeat_prescription">Prescription</option>
+        <option value="fit_note">Sick Note</option>
+        <option value="routine_care">Routine Care</option>
+        <option value="test_results">Test Results</option>
+        <option value="referral_followup">Referral Follow-up</option>
+        <option value="doctors_letter">Doctor's Letter</option>
+        <option value="other_admin">Other Admin</option>
       </select>
 
       {/* Date Filter */}
