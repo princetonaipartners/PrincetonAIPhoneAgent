@@ -83,11 +83,12 @@ export async function POST(request: NextRequest) {
 
     // Extract structured data (pass transcript for emergency detection)
     const patientData = extractPatientData(data.analysis, data.transcript);
-    const { type: requestType, data: requestData } = extractRequestData(data.analysis);
+    const { types: requestTypes, data: requestData } = extractRequestData(data.analysis);
     const transcript = formatTranscript(data.transcript);
     const status = determineStatus(data.analysis, data.status as 'done' | 'failed');
 
     // Prepare submission record
+    // request_type is comma-separated for multi-request calls
     const submission = {
       conversation_id: data.conversation_id,
       agent_id: data.agent_id,
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       caller_phone: patientData.phone_number || null,
       status,
       patient_data: patientData,
-      request_type: requestType,
+      request_type: requestTypes.length > 0 ? requestTypes.join(',') : null,
       request_data: requestData,
       transcript,
       analysis: data.analysis,
