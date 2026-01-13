@@ -10,7 +10,19 @@ import { NotesPanel } from './NotesPanel';
 import { EditHistoryPanel } from './EditHistoryPanel';
 import { ExportButton } from './ExportButton';
 import { TranscriptViewer } from './TranscriptViewer';
-import type { SubmissionWithDetails, HealthProblemRequest, RepeatPrescriptionRequest } from '@/types';
+import type { SubmissionWithDetails, HealthProblemRequest, RepeatPrescriptionRequest, RequestType, RequestData } from '@/types';
+import { getRequestTypes, isMultiRequestData } from '@/types';
+
+const REQUEST_TYPE_LABELS: Record<RequestType, string> = {
+  health_problem: 'Health Problem',
+  repeat_prescription: 'Prescription Request',
+  fit_note: 'Fit Note (Sick Note)',
+  routine_care: 'Routine Care',
+  test_results: 'Test Results',
+  referral_followup: 'Referral Follow-up',
+  doctors_letter: "Doctor's Letter",
+  other_admin: 'Other Admin',
+};
 
 interface SubmissionDetailProps {
   initialData: SubmissionWithDetails;
@@ -145,15 +157,42 @@ export function SubmissionDetail({ initialData }: SubmissionDetailProps) {
           />
         </Section>
 
-        {/* Request Details */}
-        <Section title={submission.request_type === 'health_problem' ? 'Health Problem Details' : submission.request_type === 'repeat_prescription' ? 'Prescription Request Details' : 'Request Details'}>
-          <RequestDataEditor
-            submissionId={submission.id}
-            requestType={submission.request_type}
-            requestData={submission.request_data}
-            onUpdate={refreshData}
-          />
-        </Section>
+        {/* Request Details - supports multiple request types */}
+        {(() => {
+          const requestTypes = getRequestTypes(submission.request_type);
+
+          if (requestTypes.length === 0) {
+            return (
+              <Section title="Request Details">
+                <p className="text-gray-500 italic">No request type specified</p>
+              </Section>
+            );
+          }
+
+          // Check if using new multi-request format or old single-request format
+          const isMultiFormat = isMultiRequestData(submission.request_data);
+
+          return requestTypes.map((type) => {
+            // Get request data for this type
+            const typeData = isMultiFormat
+              ? (submission.request_data as Record<string, RequestData>)?.[type] || null
+              : submission.request_data as RequestData;
+
+            return (
+              <Section
+                key={type}
+                title={REQUEST_TYPE_LABELS[type] || 'Request Details'}
+              >
+                <RequestDataEditor
+                  submissionId={submission.id}
+                  requestType={type}
+                  requestData={typeData}
+                  onUpdate={refreshData}
+                />
+              </Section>
+            );
+          });
+        })()}
 
         {/* Notes */}
         <div id="notes">
