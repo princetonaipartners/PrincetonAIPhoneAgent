@@ -364,14 +364,21 @@ export function extractRequestData(
 
 /**
  * Detects request types based on what data was actually collected
- * This is a fallback in case ElevenLabs doesn't correctly report all request types
+ * This is a CONSERVATIVE fallback - only for core 3 types that are commonly requested.
+ *
+ * IMPORTANT: ElevenLabs fills many fields with garbage data from the conversation
+ * even when the patient didn't request those services. We ONLY use fallback detection
+ * for: health_problem, repeat_prescription, fit_note.
+ *
+ * For other types (routine_care, test_results, referral_followup, doctors_letter, other_admin),
+ * we trust ElevenLabs request_type field - they're rare and the fallback creates false positives.
  */
 function detectRequestTypesFromData(collected: ElevenLabsDataCollected | undefined): RequestType[] {
   if (!collected) return [];
 
   const detected: RequestType[] = [];
 
-  // Health problem: has description, duration, or concerns
+  // Health problem: has description or concerns
   const healthDesc = parseStringValue(collected.health_problem_description);
   const healthConcerns = parseStringValue(collected.health_problem_concerns);
   if (healthDesc || healthConcerns) {
@@ -402,35 +409,15 @@ function detectRequestTypesFromData(collected: ElevenLabsDataCollected | undefin
     }
   }
 
-  // Routine care: has routine_care_details (but not generic "patient request")
-  const routineCare = parseStringValue(collected.routine_care_details);
-  if (routineCare && routineCare !== 'patient request') {
-    detected.push('routine_care');
-  }
-
-  // Test results: has test_details with actual content
-  const testDetails = parseStringValue(collected.test_details);
-  if (testDetails) {
-    detected.push('test_results');
-  }
-
-  // Referral followup: has referral_details
-  const referralDetails = parseStringValue(collected.referral_details);
-  if (referralDetails) {
-    detected.push('referral_followup');
-  }
-
-  // Doctor's letter: has letter_details with actual purpose (not just contact time)
-  const letterDetails = parseStringValue(collected.letter_details);
-  if (letterDetails && letterDetails !== 'anytime') {
-    detected.push('doctors_letter');
-  }
-
-  // Other admin: has other_admin_description (not just contact time)
-  const otherAdmin = parseStringValue(collected.other_admin_description);
-  if (otherAdmin && otherAdmin !== 'anytime') {
-    detected.push('other_admin');
-  }
+  // NOTE: We do NOT detect the following types via fallback because ElevenLabs
+  // fills these fields with garbage data from the conversation:
+  // - routine_care (routine_care_details often contains generic text)
+  // - test_results (test_details gets filled with health problem info)
+  // - referral_followup (referral_details gets filled with garbage)
+  // - doctors_letter (letter_details gets filled with contact time info)
+  // - other_admin (other_admin_description gets filled with contact time info)
+  //
+  // For these types, we rely on ElevenLabs request_type field to be accurate.
 
   return detected;
 }
