@@ -33,35 +33,52 @@ function StatusBadge({ status }: { status: SubmissionStatus }) {
   );
 }
 
-function TypeBadge({ type }: { type: RequestType | null }) {
-  if (!type) return <span className="text-gray-400">-</span>;
+const TYPE_STYLES: Record<RequestType, string> = {
+  health_problem: 'bg-blue-100 text-blue-800',
+  repeat_prescription: 'bg-purple-100 text-purple-800',
+  fit_note: 'bg-amber-100 text-amber-800',
+  routine_care: 'bg-teal-100 text-teal-800',
+  test_results: 'bg-cyan-100 text-cyan-800',
+  referral_followup: 'bg-indigo-100 text-indigo-800',
+  doctors_letter: 'bg-pink-100 text-pink-800',
+  other_admin: 'bg-gray-100 text-gray-800',
+};
 
-  const styles: Record<RequestType, string> = {
-    health_problem: 'bg-blue-100 text-blue-800',
-    repeat_prescription: 'bg-purple-100 text-purple-800',
-    fit_note: 'bg-amber-100 text-amber-800',
-    routine_care: 'bg-teal-100 text-teal-800',
-    test_results: 'bg-cyan-100 text-cyan-800',
-    referral_followup: 'bg-indigo-100 text-indigo-800',
-    doctors_letter: 'bg-pink-100 text-pink-800',
-    other_admin: 'bg-gray-100 text-gray-800',
-  };
+const TYPE_LABELS: Record<RequestType, string> = {
+  health_problem: 'Health',
+  repeat_prescription: 'Rx',
+  fit_note: 'Sick Note',
+  routine_care: 'Routine',
+  test_results: 'Test',
+  referral_followup: 'Referral',
+  doctors_letter: 'Letter',
+  other_admin: 'Admin',
+};
 
-  const labels: Record<RequestType, string> = {
-    health_problem: 'Health',
-    repeat_prescription: 'Rx',
-    fit_note: 'Sick Note',
-    routine_care: 'Routine',
-    test_results: 'Test',
-    referral_followup: 'Referral',
-    doctors_letter: 'Letter',
-    other_admin: 'Admin',
-  };
+function TypeBadge({ type }: { type: RequestType }) {
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${TYPE_STYLES[type] || 'bg-gray-100 text-gray-800'}`}>
+      {TYPE_LABELS[type] || type}
+    </span>
+  );
+}
+
+// Supports comma-separated request types (e.g., "fit_note,repeat_prescription")
+function TypeBadges({ types }: { types: string | null }) {
+  if (!types) return <span className="text-gray-400">-</span>;
+
+  const typeList = types.split(',').map(t => t.trim()).filter(Boolean) as RequestType[];
+
+  if (typeList.length === 0) {
+    return <span className="text-gray-400">-</span>;
+  }
 
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[type]}`}>
-      {labels[type]}
-    </span>
+    <div className="flex flex-wrap gap-1">
+      {typeList.map((type) => (
+        <TypeBadge key={type} type={type} />
+      ))}
+    </div>
   );
 }
 
@@ -264,7 +281,7 @@ export function SubmissionsTable({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <TypeBadge type={submission.request_type} />
+                    <TypeBadges types={submission.request_type} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge status={submission.status} />
