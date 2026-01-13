@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       agent_id: data.agent_id,
       call_timestamp: new Date(data.metadata.start_time_unix_secs * 1000).toISOString(),
       call_duration_secs: data.metadata.call_duration_secs,
-      caller_phone: null, // Not provided in standard webhook
+      caller_phone: patientData.phone_number || null,
       status,
       patient_data: patientData,
       request_type: requestType,
