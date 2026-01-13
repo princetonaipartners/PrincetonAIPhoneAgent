@@ -122,22 +122,42 @@ export function detectEmergencyFromTranscript(
   }
 
   const emergencyPhrases = [
+    // Direct emergency statements
     'this is an emergency',
+    'this is emergency',
     'i have an emergency',
+    'i have emergency',
     'it is an emergency',
+    'it is emergency',
     'is an emergency',
+    'is emergency',
     'having an emergency',
+    'having emergency',
     'yes emergency',
+    'an emergency',
+    'emergency i need',
+    'emergency help',
+    // Ambulance/999 related
     'need ambulance',
     'call 999',
     'call an ambulance',
     'need an ambulance',
+    // Symptoms that indicate emergency
     'chest pain',
     'can\'t breathe',
     'cannot breathe',
+    'cant breathe',
     'difficulty breathing',
+    'hard to breathe',
     'severe bleeding',
+    'heavy bleeding',
     'having a stroke',
+    'signs of stroke',
+    'heart attack',
+    'unconscious',
+    'passed out',
+    'seizure',
+    'choking',
   ];
 
   // Check patient messages only
