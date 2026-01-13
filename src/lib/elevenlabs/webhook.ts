@@ -242,7 +242,7 @@ export function extractRequestData(
         type: 'repeat_prescription',
         data: {
           type: 'repeat_prescription',
-          medications: parseArrayValue(collected?.medications_requested) || [],
+          medications: parseMedicationsString(collected?.medications_requested),
           additional_notes: parseStringValue(collected?.prescription_notes) || '',
         },
       };
@@ -450,4 +450,44 @@ function parseArrayValue<T>(value: unknown): T[] | null {
   }
   if (Array.isArray(value)) return value as T[];
   return null;
+}
+
+/**
+ * Parses a medications string from ElevenLabs into structured Medication objects
+ * Input formats:
+ *   - "Adderall XR 25 MG, Codine 50 MG"
+ *   - "Metformin 500mg, Lisinopril 10mg"
+ *   - { value: "Adderall XR 25 MG, Codine 50 MG" }
+ *
+ * Returns array of { name, strength } objects
+ */
+function parseMedicationsString(value: unknown): { name: string; strength: string }[] {
+  // First extract the string value (handles object wrapper from ElevenLabs)
+  const stringValue = parseStringValue(value);
+  if (!stringValue) return [];
+
+  // Split by comma and process each medication
+  const medications: { name: string; strength: string }[] = [];
+  const items = stringValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+  for (const item of items) {
+    // Try to extract strength - look for number followed by unit (MG, mg, ML, ml, mcg, etc.)
+    // Pattern: captures everything before the number as name, number+unit as strength
+    const strengthMatch = item.match(/^(.+?)\s+(\d+(?:\.\d+)?\s*(?:mg|MG|ml|ML|mcg|MCG|g|G|IU|iu|%|units?)?)\s*$/i);
+
+    if (strengthMatch) {
+      medications.push({
+        name: strengthMatch[1].trim(),
+        strength: strengthMatch[2].trim().toUpperCase(),
+      });
+    } else {
+      // No clear strength pattern found - put entire item as name
+      medications.push({
+        name: item,
+        strength: '',
+      });
+    }
+  }
+
+  return medications;
 }

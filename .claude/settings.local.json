@@ -28,7 +28,15 @@
       "mcp__github__list_commits",
       "WebFetch(domain:community.n8n.io)",
       "WebFetch(domain:drdroid.io)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm search:*)",
+      "Bash(npm view:*)",
+      "Bash(set VERCEL_API_KEY=0V81fkda6gztH3NeX0D3KH75)",
+      "WebFetch(domain:docraptor.com)",
+      "mcp__vercel__getDeployments",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__execute_sql"
     ]
   },
   "enabledMcpjsonServers": [
