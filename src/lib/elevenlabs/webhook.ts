@@ -266,36 +266,20 @@ export function formatTranscript(
 
 /**
  * Determines submission status based on analysis
+ *
+ * All new calls come in as 'requires_review' so staff must explicitly
+ * review and mark them as completed. Only failed calls are marked 'failed'.
  */
 export function determineStatus(
   analysis: ElevenLabsWebhookPayload['data']['analysis'],
   callStatus: 'done' | 'failed'
-): 'completed' | 'failed' | 'requires_review' {
+): 'completed' | 'failed' | 'requires_review' | 'pending' {
   if (callStatus === 'failed') {
     return 'failed';
   }
 
-  // call_successful is a string like "success" or "failure"
-  if (analysis?.call_successful !== 'success') {
-    return 'requires_review';
-  }
-
-  const data = analysis.data_collection_results;
-
-  // Check if essential fields are present
-  const firstName = parseStringValue(data?.patient_first_name);
-  const lastName = parseStringValue(data?.patient_last_name);
-  if (!firstName || !lastName) {
-    return 'requires_review';
-  }
-
-  // Emergency must be confirmed (i.e., they confirmed it's NOT an emergency)
-  const emergencyConfirmed = parseBooleanValue(data?.emergency_confirmed);
-  if (!emergencyConfirmed) {
-    return 'requires_review';
-  }
-
-  return 'completed';
+  // All new calls require staff review - they will mark as completed after handling
+  return 'requires_review';
 }
 
 // ============================================
