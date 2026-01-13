@@ -158,6 +158,22 @@ export function detectEmergencyFromTranscript(
     'passed out',
     'seizure',
     'choking',
+    // Life-threatening statements
+    'i am dying',
+    'i\'m dying',
+    'im dying',
+    'going to die',
+    'think i\'m going to die',
+    'think i am going to die',
+    'feel like i\'m dying',
+    'feel like dying',
+    'about to die',
+    'losing consciousness',
+    'blacking out',
+    'collapsing',
+    'severe pain',
+    'extreme pain',
+    'unbearable pain',
   ];
 
   // Check patient messages only
@@ -427,15 +443,28 @@ function parseStringValue(value: unknown): string | null {
 }
 
 /**
- * Parses a boolean value, handling string "True"/"False" from ElevenLabs
+ * Parses a boolean value, handling string "True"/"False" and object wrapper from ElevenLabs
+ * ElevenLabs often sends { value: "True", rationale: "..." } format
  */
 function parseBooleanValue(value: unknown): boolean {
   if (value === null || value === undefined) return false;
   if (typeof value === 'boolean') return value;
+
+  // Handle objects - ElevenLabs sends { value: "True/False", rationale: "..." }
+  if (typeof value === 'object' && value !== null) {
+    const obj = value as Record<string, unknown>;
+    const actualValue = obj.value ?? obj.result ?? obj.data;
+    // Recursively parse the extracted value
+    return parseBooleanValue(actualValue);
+  }
+
   if (typeof value === 'string') {
     const lower = value.toLowerCase().trim();
+    // Handle "null" string as false
+    if (lower === 'null' || lower === '') return false;
     return lower === 'true' || lower === 'yes' || lower === '1';
   }
+
   return Boolean(value);
 }
 
