@@ -79,14 +79,7 @@ export async function POST(request: NextRequest) {
     const transcript = formatTranscript(data.transcript);
     const status = determineStatus(data.analysis, data.status);
 
-    // Debug logging for multi-request
-    console.log(`[Webhook] Raw request_type from ElevenLabs:`, data.analysis?.data_collection_results?.request_type);
-    console.log(`[Webhook] Parsed requestTypes:`, requestTypes);
-    console.log(`[Webhook] Parsed requestData:`, JSON.stringify(requestData, null, 2));
-
     // Prepare submission record
-    // request_type is comma-separated for multi-request calls (e.g., "fit_note,repeat_prescription")
-    // request_data is keyed object for multi-request (e.g., { fit_note: {...}, repeat_prescription: {...} })
     const submission = {
       conversation_id: data.conversation_id,
       agent_id: data.agent_id,

@@ -36,7 +36,7 @@
       "criteria": [
         {
           "name": "patient_identification",
-          "description": "Successfully collected patient name, postcode, and phone number"
+          "description": "Successfully collected patient name (with last name spelled out), postcode, and phone number"
         },
         {
           "name": "emergency_screening",
@@ -59,7 +59,7 @@
       },
       "patient_last_name": {
         "type": "string",
-        "description": "Patient's last name"
+        "description": "Patient's last name (spelled out letter by letter for confirmation)"
       },
       "patient_postcode": {
         "type": "string",
@@ -76,12 +76,11 @@
       },
       "emergency_confirmed": {
         "type": "boolean",
-        "description": "Patient confirmed not an emergency"
+        "description": "Patient confirmed this is NOT an emergency (true = not emergency, false = possible emergency)"
       },
       "request_type": {
         "type": "string",
-        "enum": ["health_problem", "repeat_prescription"],
-        "description": "Type of request"
+        "description": "Comma-separated list of ALL request types the patient mentions. Valid types: health_problem, repeat_prescription, fit_note. Examples: 'health_problem' or 'fit_note,repeat_prescription' if patient wants multiple."
       },
       "health_problem_description": {
         "type": "string",
@@ -109,26 +108,51 @@
       },
       "best_contact_times": {
         "type": "string",
-        "description": "When patient is available"
+        "description": "When patient is available for callback"
       },
       "medications_requested": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" },
-            "strength": { "type": "string" }
-          }
-        },
-        "description": "List of medications for repeat prescription"
+        "type": "string",
+        "description": "Comma-separated list of medications with strengths (e.g., 'Metformin 500mg, Lisinopril 10mg')"
       },
       "prescription_notes": {
         "type": "string",
-        "description": "Additional notes about prescription"
+        "description": "Additional notes about prescription request"
       },
-      "call_successful": {
+      "fit_note_previous": {
         "type": "boolean",
-        "description": "Whether intake was completed successfully"
+        "description": "Whether patient has had a fit note before for this condition"
+      },
+      "fit_note_illness": {
+        "type": "string",
+        "description": "The specific medical condition or illness requiring the fit note (e.g., 'back pain', 'anxiety', 'broken leg'). Only capture actual health conditions - NOT phrases like 'no', 'I'm good', 'fine', or emergency confirmation responses."
+      },
+      "fit_note_dates_and_details": {
+        "type": "string",
+        "description": "Combined field: dates needed, employer accommodations, any other fit note details"
+      },
+      "routine_care_details": {
+        "type": "string",
+        "description": "Combined field for routine care type and details (future use)"
+      },
+      "test_details": {
+        "type": "string",
+        "description": "Combined field for test type, date, location, reason (future use)"
+      },
+      "referral_details": {
+        "type": "string",
+        "description": "Combined field for referral info including what for, date, NHS/private (future use)"
+      },
+      "letter_details": {
+        "type": "string",
+        "description": "Combined field for letter purpose and deadline (future use)"
+      },
+      "other_admin_description": {
+        "type": "string",
+        "description": "Description for other admin requests (future use)"
+      },
+      "additional_notes": {
+        "type": "string",
+        "description": "Any additional notes or context from the call"
       }
     },
     "privacy": {

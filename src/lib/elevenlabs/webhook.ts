@@ -319,40 +319,26 @@ export function extractRequestData(
   const requestTypeValue = parseStringValue(collected?.request_type);
   let types = parseRequestTypes(requestTypeValue);
 
-  console.log(`[extractRequestData] Raw request_type value:`, collected?.request_type);
-  console.log(`[extractRequestData] Parsed string value:`, requestTypeValue);
-  console.log(`[extractRequestData] Initial types from request_type:`, types);
-
-  // FALLBACK DETECTION: Infer request types from data presence
-  // This ensures we capture all request types even if ElevenLabs only reports one
+  // Fallback: detect types from collected data if ElevenLabs missed any
   const detectedTypes = detectRequestTypesFromData(collected);
-  console.log(`[extractRequestData] Detected types from data:`, detectedTypes);
-
-  // Merge: use detected types if they add anything new
   for (const detected of detectedTypes) {
     if (!types.includes(detected)) {
-      console.log(`[extractRequestData] Adding detected type: ${detected}`);
       types.push(detected);
     }
   }
 
   if (types.length === 0) {
-    console.log(`[extractRequestData] No request types found`);
     return { types: [], data: null };
   }
 
   // Extract data for each request type
   const data: MultiRequestData = {};
-
   for (const requestType of types) {
     const requestData = extractSingleRequestData(requestType, collected);
     if (requestData) {
       data[requestType] = requestData;
     }
   }
-
-  console.log(`[extractRequestData] Final types:`, types);
-  console.log(`[extractRequestData] Final data keys:`, Object.keys(data));
 
   // Return null if no data was extracted
   if (Object.keys(data).length === 0) {
